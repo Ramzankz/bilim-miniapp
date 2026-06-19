@@ -13,17 +13,22 @@ export default function Result({ lang, t, result, lesson, onBack, onRetry, total
   return (
     <div className="screen result-screen">
       <div className="result-icon">{icon}</div>
-      <h2 className="result-msg">{msg}</h2>
+      <h2 className="result-message">{msg}</h2>
 
-      <div className="result-score">
-        {score} / {total}
-        <span className="result-pct"> ({pct}%)</span>
+      <div className="score-circle">
+        <span className="score-num">{score}</span>
+        <span className="score-sep">/</span>
+        <span className="score-total">{total}</span>
       </div>
+      <p className="score-percent">{pct}%</p>
 
       {coinsEarned > 0 && (
         <div className="coins-earned-card">
-          🪙 +{coinsEarned} {t("тиын жиналды!", "монет заработано!")}
-          <p className="coins-total">{t(`Жалпы: ${totalCoins} тиын`, `Итого: ${totalCoins} монет`)}</p>
+          <span className="coins-earned-icon">🪙</span>
+          <div>
+            <strong>+{coinsEarned} {t("тиын жиналды!", "монет заработано!")}</strong>
+            <p>{t(`Жалпы: ${totalCoins} тиын`, `Итого: ${totalCoins} монет`)}</p>
+          </div>
         </div>
       )}
 
@@ -31,8 +36,8 @@ export default function Result({ lang, t, result, lesson, onBack, onRetry, total
         <button className="retry-btn" onClick={onRetry}>
           🔄 {t("Қайталау", "Повторить")}
         </button>
-        <button className="back-btn-result" onClick={onBack}>
-          {t("Сабақтарға оралу", "К урокам")}
+        <button className="back-btn-big" onClick={onBack}>
+          {t("Сабақтарға", "К урокам")}
         </button>
       </div>
     </div>
