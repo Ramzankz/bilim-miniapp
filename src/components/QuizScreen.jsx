@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
   const [current, setCurrent] = useState(0);
@@ -8,6 +8,26 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
 
   const questions = lesson?.questions || [];
   const q = questions[current];
+
+  // Аудио: сұрақты дауыстап оқу
+  const speak = useCallback((text) => {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = lang === "kz" ? "ru-RU" : "ru-RU"; // Kazakh fallback to Russian TTS
+    utt.rate = 0.85;
+    utt.pitch = 1.1;
+    window.speechSynthesis.speak(utt);
+  }, [lang]);
+
+  // Жаңа сұрақ келгенде автоматты оқу
+  useEffect(() => {
+    if (q) {
+      const text = lang === "kz" ? q.text?.kz : q.text?.ru;
+      if (text) speak(text);
+    }
+    return () => window.speechSynthesis?.cancel();
+  }, [current, q, lang, speak]);
 
   const getOptionLabel = (opt) => {
     if (typeof opt === "string") return opt;
@@ -29,11 +49,14 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
       setCurrent((c) => c + 1);
       setChosen(null);
     } else {
+      window.speechSynthesis?.cancel();
       onDone({ score, total: questions.length });
     }
   };
 
   if (!q) return <div className="screen">{t("Сұрақтар жоқ", "Нет вопросов")}</div>;
+
+  const questionText = lang === "kz" ? q.text?.kz : q.text?.ru;
 
   return (
     <div className="screen quiz-screen">
@@ -46,9 +69,14 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
       {coinPop && <div className="coin-popup">+10 🪙</div>}
 
       <div className="question-card">
-        <p className="question-text">
-          {lang === "kz" ? q.text?.kz : q.text?.ru}
-        </p>
+        <p className="question-text">{questionText}</p>
+        <button
+          className="speak-btn"
+          onClick={() => speak(questionText)}
+          title={t("Дауыстап оқу", "Прочитать вслух")}
+        >
+          🔊
+        </button>
       </div>
 
       <div className="options-list">
