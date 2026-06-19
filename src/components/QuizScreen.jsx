@@ -2,97 +2,75 @@ import { useState } from "react";
 
 export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
   const [current, setCurrent] = useState(0);
-  const [selected, setSelected] = useState(null);
-  const [answered, setAnswered] = useState(false);
   const [score, setScore] = useState(0);
-  const [showCoin, setShowCoin] = useState(false);
+  const [chosen, setChosen] = useState(null);
+  const [coinPop, setCoinPop] = useState(false);
 
-  const questions = lesson.questions;
+  const questions = lesson?.questions || [];
   const q = questions[current];
 
   const handleAnswer = (idx) => {
-    if (answered) return;
-    setSelected(idx);
-    setAnswered(true);
-    if (idx === q.correct) {
+    if (chosen !== null) return;
+    setChosen(idx);
+    if (idx === q.answer) {
       setScore((s) => s + 1);
-      setShowCoin(true);
-      setTimeout(() => setShowCoin(false), 1000);
+      setCoinPop(true);
+      setTimeout(() => setCoinPop(false), 1200);
     }
   };
 
   const handleNext = () => {
     if (current + 1 < questions.length) {
       setCurrent((c) => c + 1);
-      setSelected(null);
-      setAnswered(false);
+      setChosen(null);
     } else {
-      const finalScore = score + (selected === q.correct ? 1 : 0);
-      onDone({ score: finalScore, total: questions.length, lesson });
+      onDone({ score, total: questions.length });
     }
   };
 
-  const getOptionLabel = (opt) => {
-    if (typeof opt === "object") return opt[lang];
-    return opt;
-  };
-
-  const progress = ((current) / questions.length) * 100;
-  const isCorrect = answered && selected === q.correct;
+  if (!q) return <div className="screen">{t("Сұрақтар жоқ", "Нет вопросов")}</div>;
 
   return (
     <div className="screen quiz-screen">
-      {showCoin && (
-        <div className="coin-popup">+10 Coin</div>
-      )}
-
       <div className="quiz-header">
-        <button className="back-btn" onClick={onBack}>X</button>
-        <div className="progress-bar">
-          <div className="progress-fill" style={{ width: `${progress}%` }} />
-        </div>
-        <span className="progress-label">{current + 1}/{questions.length}</span>
-        <span className="quiz-coins">Coin {coins}</span>
+        <button className="back-btn" onClick={onBack}>✕</button>
+        <span className="quiz-progress">{current + 1} / {questions.length}</span>
+        <span className="quiz-coins">🪙 {coins}</span>
       </div>
 
-      <div className={`question-card ${isCorrect ? "correct-bg" : ""}`}>
-        <div className="lesson-emoji-big">{lesson.emoji}</div>
-        <p className="question-text">{q.text[lang]}</p>
+      {coinPop && <div className="coin-popup">+10 🪙</div>}
+
+      <div className="question-card">
+        <p className="question-text">{lang === "kz" ? q.textKz : q.textRu}</p>
       </div>
 
-      <div className="options-list">
+      <div className="answers">
         {q.options.map((opt, idx) => {
-          let cls = "option-btn";
-          if (answered) {
-            if (idx === q.correct) cls += " correct";
-            else if (idx === selected) cls += " wrong";
+          let cls = "answer-btn";
+          if (chosen !== null) {
+            if (idx === q.answer) cls += " correct";
+            else if (idx === chosen) cls += " wrong";
           }
           return (
             <button key={idx} className={cls} onClick={() => handleAnswer(idx)}>
-              {answered && idx === q.correct && "OK "}
-              {answered && idx === selected && idx !== q.correct && "X "}
-              {getOptionLabel(opt)}
+              {lang === "kz" ? opt.kz : opt.ru}
             </button>
           );
         })}
       </div>
 
-      {answered && (
-        <div className={`explanation ${isCorrect ? "good" : "bad"}`}>
-          <strong>{isCorrect
-            ? t("Durys! +10 Coin", "Verno! +10 Coin")
-            : t("Qate. Biraq bul da oqu!", "Neverno. No eto tozhe uchyoba!")}
-          </strong>
-          <p>{q.explanation[lang]}</p>
+      {chosen !== null && (
+        <div className="explanation">
+          {chosen === q.answer
+            ? <p>🎉 {lang === "kz" ? q.explanationKz : q.explanationRu}</p>
+            : <p>❌ {t("Дұрыс емес. Тағы бір рет!", "Неверно. Попробуй ещё!")}</p>
+          }
+          <button className="next-btn" onClick={handleNext}>
+            {current + 1 < questions.length
+              ? t("🔄 Келесі", "🔄 Следующий")
+              : t("🏆 Нәтиже", "🏆 Результат")}
+          </button>
         </div>
-      )}
-
-      {answered && (
-        <button className="next-btn" onClick={handleNext}>
-          {current + 1 < questions.length
-            ? t("Kelesi", "Dalshe")
-            : t("Natizhe Trophy", "Posmotret rezultat Trophy")}
-        </button>
       )}
     </div>
   );
