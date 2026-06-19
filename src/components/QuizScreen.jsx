@@ -1,35 +1,13 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 
-// Ең жақсы дауысты таңдайды
-function speak(text) {
-  if (!window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-
-  const utter = () => {
-    const u = new SpeechSynthesisUtterance(text);
-    const voices = window.speechSynthesis.getVoices();
-    // Орыс дауысын іздейді (кириллица үшін ең жақсы)
-    const best = voices.find(v => v.lang === "ru-RU" && v.localService)
-      || voices.find(v => v.lang === "ru-RU")
-      || voices.find(v => v.lang.startsWith("ru"))
-      || null;
-    if (best) u.voice = best;
-    u.lang = "ru-RU";
-    u.rate = 0.75;   // баяу — түсінікті
-    u.pitch = 1.0;
-    u.volume = 1;
-    window.speechSynthesis.speak(u);
-  };
-
-  // Дауыстар жүктелмесе, күтеді
-  if (window.speechSynthesis.getVoices().length > 0) {
-    utter();
-  } else {
-    window.speechSynthesis.onvoiceschanged = () => {
-      window.speechSynthesis.onvoiceschanged = null;
-      utter();
-    };
-  }
+// Google Translate TTS — нақты қазақ дыбысы
+function speakGT(text, lang) {
+  const tl = lang === "kz" ? "kk" : "ru";
+  const url =
+    "https://translate.google.com/translate_tts" +
+    "?ie=UTF-8&client=tw-ob&tl=" + tl +
+    "&q=" + encodeURIComponent(text);
+  return url;
 }
 
 export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
@@ -37,6 +15,8 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
   const [score, setScore] = useState(0);
   const [chosen, setChosen] = useState(null);
   const [coinPop, setCoinPop] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  const audioRef = useRef(null);
 
   const questions = lesson?.questions || [];
   const q = questions[current];
@@ -46,8 +26,31 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
     return lang === "kz" ? opt.kz : opt.ru;
   };
 
+  const handleSpeak = (text) => {
+    if (!text) return;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+    }
+    const audio = new Audio(speakGT(text, lang));
+    audioRef.current = audio;
+    setSpeaking(true);
+    audio.onended = () => setSpeaking(false);
+    audio.onerror = () => setSpeaking(false);
+    audio.play().catch(() => setSpeaking(false));
+  };
+
+  const stopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+    }
+    setSpeaking(false);
+  };
+
   const handleAnswer = (idx) => {
     if (chosen !== null) return;
+    stopAudio();
     setChosen(idx);
     if (idx === q.correct) {
       setScore((s) => s + 1);
@@ -57,13 +60,18 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
   };
 
   const handleNext = () => {
-    window.speechSynthesis?.cancel();
+    stopAudio();
     if (current + 1 < questions.length) {
       setCurrent((c) => c + 1);
       setChosen(null);
     } else {
       onDone({ score, total: questions.length });
     }
+  };
+
+  const handleBack = () => {
+    stopAudio();
+    onBack();
   };
 
   if (!q) return <div className="screen">{t("Сұрақтар жоқ", "Нет вопросов")}</div>;
@@ -73,7 +81,7 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
   return (
     <div className="screen quiz-screen">
       <div className="quiz-header">
-        <button className="back-btn" onClick={() => { window.speechSynthesis?.cancel(); onBack(); }}>✕</button>
+        <button className="back-btn" onClick={handleBack}>✕</button>
         <span className="progress-label">{current + 1} / {questions.length}</span>
         <span className="quiz-coins">🪙 {coins}</span>
       </div>
@@ -83,11 +91,11 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
       <div className="question-card">
         <p className="question-text">{questionText}</p>
         <button
-          className="speak-btn"
-          onClick={() => speak(questionText)}
+          className={`speak-btn ${speaking ? "speaking" : ""}`}
+          onClick={() => speaking ? stopAudio() : handleSpeak(questionText)}
           aria-label="Дауыстап оқу"
         >
-          🔊
+          {speaking ? "⏹️" : "🔊"}
         </button>
       </div>
 
