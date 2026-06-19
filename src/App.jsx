@@ -30,6 +30,7 @@ export default function App() {
     const savedCoins = parseInt(localStorage.getItem("bilim_coins") || "0");
     setCoins(savedCoins);
 
+    // Streak логикасы
     const today = new Date().toDateString();
     const lastVisit = localStorage.getItem("bilim_last_visit");
     const savedStreak = parseInt(localStorage.getItem("bilim_streak") || "0");
@@ -84,8 +85,8 @@ export default function App() {
 
   const handlePaymentDone = () => {
     alert(lang === "kz"
-      ? "Skrinshotti @BilimAppBot-ka zhiberiniz. Rastaghannan keyin sabaqtar ashylady!"
-      : "Otpravte skrinsho v @BilimAppBot. Posle podtverzhdeniya uroki otkroyutsya!");
+      ? "✅ Скриншотты @BilimAppBot-қа жіберіңіз. Растағаннан кейін сабақтар ашылады!"
+      : "✅ Отправьте скриншот в @BilimAppBot. После подтверждения уроки откроются!");
     setScreen("lessons");
   };
 
@@ -95,16 +96,16 @@ export default function App() {
     <div className="app">
       <div className="top-bar">
         <div className="coins-display">
-          <span>Coin {coins}</span>
+          🪙 <span>{coins}</span>
         </div>
         {streak > 0 && (
           <div className="streak-display">
-            <span>Fire {streak}</span>
+            🔥 <span>{streak}</span>
           </div>
         )}
         <div className="lang-toggle">
-          <button className={lang === "kz" ? "active" : ""} onClick={() => setLang("kz")}>QAZ</button>
-          <button className={lang === "ru" ? "active" : ""} onClick={() => setLang("ru")}>RUS</button>
+          <button className={lang === "kz" ? "active" : ""} onClick={() => setLang("kz")}>ҚАЗ</button>
+          <button className={lang === "ru" ? "active" : ""} onClick={() => setLang("ru")}>РУС</button>
         </div>
       </div>
 
