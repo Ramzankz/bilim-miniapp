@@ -9,8 +9,6 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
   const questions = lesson?.questions || [];
   const q = questions[current];
 
-  // Деректер форматы: q.text.kz, q.correct, q.explanation.kz
-  // Options: string немесе {kz, ru} болуы мүмкін
   const getOptionLabel = (opt) => {
     if (typeof opt === "string") return opt;
     return lang === "kz" ? opt.kz : opt.ru;
@@ -41,7 +39,7 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
     <div className="screen quiz-screen">
       <div className="quiz-header">
         <button className="back-btn" onClick={onBack}>✕</button>
-        <span className="quiz-progress">{current + 1} / {questions.length}</span>
+        <span className="progress-label">{current + 1} / {questions.length}</span>
         <span className="quiz-coins">🪙 {coins}</span>
       </div>
 
@@ -53,9 +51,9 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
         </p>
       </div>
 
-      <div className="answers">
+      <div className="options-list">
         {(q.options || []).map((opt, idx) => {
-          let cls = "answer-btn";
+          let cls = "option-btn";
           if (chosen !== null) {
             if (idx === q.correct) cls += " correct";
             else if (idx === chosen) cls += " wrong";
@@ -69,7 +67,7 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
       </div>
 
       {chosen !== null && (
-        <div className="explanation">
+        <div className={`explanation ${chosen === q.correct ? "good" : "bad"}`}>
           {chosen === q.correct
             ? <p>🎉 {lang === "kz" ? q.explanation?.kz : q.explanation?.ru}</p>
             : <p>❌ {t("Дұрыс емес. Тағы бір рет!", "Неверно. Попробуй ещё!")}</p>
