@@ -1,4 +1,36 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+
+// Ең жақсы дауысты таңдайды
+function speak(text) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+
+  const utter = () => {
+    const u = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices();
+    // Орыс дауысын іздейді (кириллица үшін ең жақсы)
+    const best = voices.find(v => v.lang === "ru-RU" && v.localService)
+      || voices.find(v => v.lang === "ru-RU")
+      || voices.find(v => v.lang.startsWith("ru"))
+      || null;
+    if (best) u.voice = best;
+    u.lang = "ru-RU";
+    u.rate = 0.75;   // баяу — түсінікті
+    u.pitch = 1.0;
+    u.volume = 1;
+    window.speechSynthesis.speak(u);
+  };
+
+  // Дауыстар жүктелмесе, күтеді
+  if (window.speechSynthesis.getVoices().length > 0) {
+    utter();
+  } else {
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.onvoiceschanged = null;
+      utter();
+    };
+  }
+}
 
 export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
   const [current, setCurrent] = useState(0);
@@ -8,26 +40,6 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
 
   const questions = lesson?.questions || [];
   const q = questions[current];
-
-  // Аудио: сұрақты дауыстап оқу
-  const speak = useCallback((text) => {
-    if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.lang = lang === "kz" ? "ru-RU" : "ru-RU"; // Kazakh fallback to Russian TTS
-    utt.rate = 0.85;
-    utt.pitch = 1.1;
-    window.speechSynthesis.speak(utt);
-  }, [lang]);
-
-  // Жаңа сұрақ келгенде автоматты оқу
-  useEffect(() => {
-    if (q) {
-      const text = lang === "kz" ? q.text?.kz : q.text?.ru;
-      if (text) speak(text);
-    }
-    return () => window.speechSynthesis?.cancel();
-  }, [current, q, lang, speak]);
 
   const getOptionLabel = (opt) => {
     if (typeof opt === "string") return opt;
@@ -45,11 +57,11 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
   };
 
   const handleNext = () => {
+    window.speechSynthesis?.cancel();
     if (current + 1 < questions.length) {
       setCurrent((c) => c + 1);
       setChosen(null);
     } else {
-      window.speechSynthesis?.cancel();
       onDone({ score, total: questions.length });
     }
   };
@@ -61,7 +73,7 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
   return (
     <div className="screen quiz-screen">
       <div className="quiz-header">
-        <button className="back-btn" onClick={onBack}>✕</button>
+        <button className="back-btn" onClick={() => { window.speechSynthesis?.cancel(); onBack(); }}>✕</button>
         <span className="progress-label">{current + 1} / {questions.length}</span>
         <span className="quiz-coins">🪙 {coins}</span>
       </div>
@@ -73,7 +85,7 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
         <button
           className="speak-btn"
           onClick={() => speak(questionText)}
-          title={t("Дауыстап оқу", "Прочитать вслух")}
+          aria-label="Дауыстап оқу"
         >
           🔊
         </button>
