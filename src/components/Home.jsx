@@ -1,69 +1,99 @@
-const AVATAR_EMOJI = {
-  lion:"🦁", crown:"👑", rocket:"🚀",
-  magic:"🧙", star:"🌟", dragon:"🐉",
-};
+import { getLevel, getXpPercent } from "../data/gamification";
 
-export default function Home({ lang, t, onAgeSelect, streak, coins, avatar, onShop, onParent, onRiddles, onGames }) {
-  const av = AVATAR_EMOJI[avatar] || "🦁";
+const AVATAR_EMOJI = { a: "🐱", b: "🐶", c: "🦊", d: "🐸", e: "🦄", f: "🐯" };
+
+const AGE_GROUPS = [
+  { id: "4-6",  emoji: "🧸", label: "4–6" },
+  { id: "7-9",  emoji: "🚀", label: "7–9" },
+  { id: "10-13",emoji: "🔬", label: "10–13" },
+];
+
+export default function Home({
+  lang, t, onAgeSelect, streak, coins, avatar,
+  onShop, onParent, onRiddles, onGames,
+  onProfile, onMissions, onLeaderboard, onElla,
+  xp, achievements, onLangToggle,
+}) {
+  const level = getLevel(xp || 0);
+  const xpPct = getXpPercent(xp || 0);
+  const achCount = (achievements || []).length;
 
   return (
-    <div className="screen home-screen">
-      {streak > 1 && (
-        <div className="streak-banner">
-          🔥 {streak} {t("күн қатарынан!", "дней подряд!")}
-          {streak >= 7 && " 🏆"}
+    <div className="home-screen">
+      {/* Top bar */}
+      <div className="top-bar">
+        <button className="avatar-btn" onClick={onProfile}>
+          <span className="avatar-emoji">{AVATAR_EMOJI[avatar] || "🐱"}</span>
+          <span className="level-chip">{level.emoji} {level.level}</span>
+        </button>
+        <div className="stats-row">
+          <span className="stat-chip">🔥 {streak}</span>
+          <span className="stat-chip">🪙 {coins}</span>
+          <span className="stat-chip">⭐ {xp || 0} XP</span>
         </div>
-      )}
+        <div className="top-btns">
+          <button className="lang-btn" onClick={onLangToggle}>{lang === "kz" ? "РУС" : "ҚАЗ"}</button>
+          <button className="shop-icon-btn" onClick={onShop}>🛍️</button>
+        </div>
+      </div>
 
+      {/* XP bar */}
+      <div className="home-xp-bar">
+        <div className="home-xp-fill" style={{ width: xpPct + "%" }} />
+      </div>
+
+      {/* Logo */}
       <div className="logo-wrap">
-        <div className="logo">{av}</div>
-        <button className="shop-icon-btn" onClick={onShop}>🛍️</button>
+        <h1 className="app-title">Білім!</h1>
+        <p className="app-subtitle">
+          {lang === "kz" ? "Ойнай отырып үйрен 🎓" : "Учись играя 🎓"}
+        </p>
       </div>
 
-      <h1 className="app-title">{t("Білім!", "Bilim!")}</h1>
-      <p className="app-subtitle">
-        {t("Логика және математика — қызықты тапсырмалармен!", "Логика и математика — через интересные задачи!")}
-      </p>
-
-      {coins > 0 && (
-        <div className="coins-banner">
-          🪙 {t(`Сізде ${coins} тиын бар!`, `У вас ${coins} монет!`)}
-        </div>
-      )}
-
-      <p className="choose-label">{t("Жасты таңда:", "Выбери возраст:")}</p>
+      {/* Age selection */}
+      <p className="select-age-label">{t.selectAge}</p>
       <div className="age-cards">
-        <button className="age-card" onClick={() => onAgeSelect("4-6")}>
-          <span className="age-emoji">🐣</span>
-          <span className="age-range">4 – 6</span>
-          <span className="age-label">{t("жас","лет")}</span>
-          <span className="age-desc">{t("Санау, фигуралар, түстер","Счёт, фигуры, цвета")}</span>
-        </button>
-        <button className="age-card" onClick={() => onAgeSelect("7-10")}>
-          <span className="age-emoji">🦅</span>
-          <span className="age-range">7 – 10</span>
-          <span className="age-label">{t("жас","лет")}</span>
-          <span className="age-desc">{t("Математика, логика, есептер","Математика, логика, задачи")}</span>
-        </button>
+        {AGE_GROUPS.map(g => (
+          <button key={g.id} className="age-card" onClick={() => onAgeSelect(g.id)}>
+            <span className="age-emoji">{g.emoji}</span>
+            <span className="age-label">{g.label}</span>
+          </button>
+        ))}
       </div>
 
-      {/* Жылдам іске қосу батырмалары */}
+      {/* Quick action buttons */}
       <div className="quick-btns">
-        <button className="quick-btn riddle-btn" onClick={onRiddles}>
-          🧩 {t("Жұмбақтар","Загадки")}
+        <button className="quick-btn qb-riddles" onClick={onRiddles}>
+          🧩 {lang === "kz" ? "Жұмбақтар" : "Загадки"}
         </button>
-        <button className="quick-btn games-btn" onClick={onGames}>
-          🎮 {t("Ойындар","Игры")}
+        <button className="quick-btn qb-games" onClick={onGames}>
+          🎮 {lang === "kz" ? "Ойындар" : "Игры"}
         </button>
       </div>
 
-      <div className="home-badges">
-        <p className="free-badge">🎁 {t("5 сабақ — тегін!","5 уроков — бесплатно!")}</p>
-        <p className="coin-badge">🪙 {t("Жауап үшін тиын жина!","Зарабатывай монеты!")}</p>
+      {/* Feature nav */}
+      <div className="feature-nav">
+        <button className="feat-btn feat-missions" onClick={onMissions}>
+          <span className="feat-icon">📋</span>
+          <span className="feat-label">{lang === "kz" ? "Тапсырмалар" : "Задания"}</span>
+        </button>
+        <button className="feat-btn feat-leaderboard" onClick={onLeaderboard}>
+          <span className="feat-icon">🏆</span>
+          <span className="feat-label">{lang === "kz" ? "Рейтинг" : "Рейтинг"}</span>
+        </button>
+        <button className="feat-btn feat-ella" onClick={onElla}>
+          <span className="feat-icon">🤖</span>
+          <span className="feat-label">Ella AI</span>
+        </button>
+        <button className="feat-btn feat-ach" onClick={onProfile}>
+          <span className="feat-icon">🏅</span>
+          <span className="feat-label">{lang === "kz" ? "Жетістік " + achCount : "Бейджи " + achCount}</span>
+        </button>
       </div>
 
+      {/* Parent btn */}
       <button className="parent-btn" onClick={onParent}>
-        👨‍👩‍👧 {t("Ата-ана кабинеті","Кабинет родителя")}
+        👨‍👩‍👧 {lang === "kz" ? "Ата-ана кабинеті" : "Кабинет родителя"}
       </button>
     </div>
   );
