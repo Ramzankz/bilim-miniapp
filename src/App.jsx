@@ -6,6 +6,8 @@ import Paywall from "./components/Paywall";
 import Result from "./components/Result";
 import Shop from "./components/Shop";
 import ParentDashboard from "./components/ParentDashboard";
+import Riddles from "./components/Riddles";
+import MiniGames from "./components/MiniGames";
 import "./index.css";
 
 const tg = window.Telegram?.WebApp;
@@ -23,23 +25,17 @@ export default function App() {
 
   useEffect(() => {
     if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor("#6C5CE7"); }
-
     if (localStorage.getItem("bilim_paid") === "true") setIsPaid(true);
-
-    const saved = parseInt(localStorage.getItem("bilim_coins") || "0");
-    setCoins(saved);
-
-    const av = localStorage.getItem("bilim_avatar") || "lion";
-    setAvatar(av);
-
-    const today     = new Date().toDateString();
-    const last      = localStorage.getItem("bilim_last_visit");
-    const savedStr  = parseInt(localStorage.getItem("bilim_streak") || "0");
+    setCoins(parseInt(localStorage.getItem("bilim_coins") || "0"));
+    setAvatar(localStorage.getItem("bilim_avatar") || "lion");
+    const today = new Date().toDateString();
+    const last  = localStorage.getItem("bilim_last_visit");
+    const saved = parseInt(localStorage.getItem("bilim_streak") || "0");
     if (last === today) {
-      setStreak(savedStr);
+      setStreak(saved);
     } else {
       const yest = new Date(); yest.setDate(yest.getDate() - 1);
-      const ns = last === yest.toDateString() ? savedStr + 1 : 1;
+      const ns = last === yest.toDateString() ? saved + 1 : 1;
       setStreak(ns);
       localStorage.setItem("bilim_streak", ns);
       localStorage.setItem("bilim_last_visit", today);
@@ -54,39 +50,27 @@ export default function App() {
     });
   };
 
-  const handleAgeSelect = (group) => { setAgeGroup(group); setScreen("lessons"); };
-
-  const handleLessonSelect = (lesson) => {
-    if (!lesson.free && !isPaid) { setSelectedLesson(lesson); setScreen("paywall"); return; }
-    setSelectedLesson(lesson); setScreen("quiz");
+  const handleAgeSelect    = (g) => { setAgeGroup(g); setScreen("lessons"); };
+  const handleLessonSelect = (l) => {
+    if (!l.free && !isPaid) { setSelectedLesson(l); setScreen("paywall"); return; }
+    setSelectedLesson(l); setScreen("quiz");
   };
-
   const handleQuizDone = (result) => {
     setQuizResult(result);
     const earned = result.score * 10;
     addCoins(earned);
     result.coinsEarned = earned;
-    // Статистика сақтау
     try {
       const prev = JSON.parse(localStorage.getItem("bilim_stats") || "[]");
-      prev.push({
-        title: selectedLesson?.title?.[lang] || selectedLesson?.title?.kz || "Сабақ",
-        score: result.score,
-        total: result.total,
-        date: new Date().toISOString(),
-      });
+      prev.push({ title: selectedLesson?.title?.[lang] || selectedLesson?.title?.kz || "Сабақ", score: result.score, total: result.total, date: new Date().toISOString() });
       localStorage.setItem("bilim_stats", JSON.stringify(prev.slice(-100)));
     } catch {}
     setScreen("result");
   };
-
   const handlePaymentDone = () => {
-    alert(lang === "kz"
-      ? "✅ Скриншотты @BilimAppBot-қа жіберіңіз!"
-      : "✅ Отправьте скриншот в @BilimAppBot!");
+    alert(lang === "kz" ? "✅ Скриншотты @BilimAppBot-қа жіберіңіз!" : "✅ Отправьте скриншот в @BilimAppBot!");
     setScreen("lessons");
   };
-
   const handleBuyAvatar = (itemId, price) => {
     if (price > 0) addCoins(-price);
     setAvatar(itemId);
@@ -95,8 +79,12 @@ export default function App() {
 
   const t = (kz, ru) => lang === "kz" ? kz : ru;
 
+  const go  = (s) => setScreen(s);
+  const home = () => setScreen("home");
+
   return (
     <div className="app">
+      {/* Жоғарғы панель — барлық экранда */}
       <div className="top-bar">
         <div className="coins-display">🪙 <span>{coins}</span></div>
         {streak > 0 && <div className="streak-display">🔥 <span>{streak}</span></div>}
@@ -106,13 +94,15 @@ export default function App() {
         </div>
       </div>
 
-      {screen === "home"   && <Home lang={lang} t={t} onAgeSelect={handleAgeSelect} streak={streak} coins={coins} avatar={avatar} onShop={() => setScreen("shop")} onParent={() => setScreen("parent")} />}
-      {screen === "lessons"&& <LessonList lang={lang} t={t} ageGroup={ageGroup} isPaid={isPaid} onLessonSelect={handleLessonSelect} onBack={() => setScreen("home")} />}
-      {screen === "quiz"   && <QuizScreen lang={lang} t={t} lesson={selectedLesson} onDone={handleQuizDone} onBack={() => setScreen("lessons")} coins={coins} />}
-      {screen === "paywall"&& <Paywall lang={lang} t={t} onPaid={handlePaymentDone} onBack={() => setScreen("lessons")} />}
-      {screen === "result" && <Result lang={lang} t={t} result={quizResult} lesson={selectedLesson} onBack={() => setScreen("lessons")} onRetry={() => setScreen("quiz")} totalCoins={coins} />}
-      {screen === "shop"   && <Shop lang={lang} t={t} coins={coins} avatar={avatar} onBuy={handleBuyAvatar} onBack={() => setScreen("home")} />}
-      {screen === "parent" && <ParentDashboard lang={lang} t={t} onBack={() => setScreen("home")} />}
+      {screen === "home"    && <Home lang={lang} t={t} onAgeSelect={handleAgeSelect} streak={streak} coins={coins} avatar={avatar} onShop={() => go("shop")} onParent={() => go("parent")} onRiddles={() => go("riddles")} onGames={() => go("games")} />}
+      {screen === "lessons" && <LessonList lang={lang} t={t} ageGroup={ageGroup} isPaid={isPaid} onLessonSelect={handleLessonSelect} onBack={home} />}
+      {screen === "quiz"    && <QuizScreen lang={lang} t={t} lesson={selectedLesson} onDone={handleQuizDone} onBack={() => go("lessons")} coins={coins} />}
+      {screen === "paywall" && <Paywall lang={lang} t={t} onPaid={handlePaymentDone} onBack={() => go("lessons")} />}
+      {screen === "result"  && <Result lang={lang} t={t} result={quizResult} lesson={selectedLesson} onBack={() => go("lessons")} onRetry={() => go("quiz")} totalCoins={coins} />}
+      {screen === "shop"    && <Shop lang={lang} t={t} coins={coins} avatar={avatar} onBuy={handleBuyAvatar} onBack={home} />}
+      {screen === "parent"  && <ParentDashboard lang={lang} t={t} onBack={home} />}
+      {screen === "riddles" && <Riddles lang={lang} t={t} onBack={home} onEarn={addCoins} />}
+      {screen === "games"   && <MiniGames lang={lang} t={t} onBack={home} onEarn={addCoins} />}
     </div>
   );
 }
