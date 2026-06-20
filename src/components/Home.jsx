@@ -1,10 +1,10 @@
 const AVATAR_EMOJI = {
-  lion: "🦁", crown: "👑", rocket: "🚀",
-  magic: "🧙", star: "🌟", dragon: "🐉",
+  lion:"🦁", crown:"👑", rocket:"🚀",
+  magic:"🧙", star:"🌟", dragon:"🐉",
 };
 
-export default function Home({ lang, t, onAgeSelect, streak, coins, avatar, onShop, onParent }) {
-  const avatarEmoji = AVATAR_EMOJI[avatar] || "🦁";
+export default function Home({ lang, t, onAgeSelect, streak, coins, avatar, onShop, onParent, onRiddles, onGames }) {
+  const av = AVATAR_EMOJI[avatar] || "🦁";
 
   return (
     <div className="screen home-screen">
@@ -16,8 +16,8 @@ export default function Home({ lang, t, onAgeSelect, streak, coins, avatar, onSh
       )}
 
       <div className="logo-wrap">
-        <div className="logo">{avatarEmoji}</div>
-        <button className="shop-icon-btn" onClick={onShop} title={t("Дүкен","Магазин")}>🛍️</button>
+        <div className="logo">{av}</div>
+        <button className="shop-icon-btn" onClick={onShop}>🛍️</button>
       </div>
 
       <h1 className="app-title">{t("Білім!", "Bilim!")}</h1>
@@ -32,29 +32,38 @@ export default function Home({ lang, t, onAgeSelect, streak, coins, avatar, onSh
       )}
 
       <p className="choose-label">{t("Жасты таңда:", "Выбери возраст:")}</p>
-
       <div className="age-cards">
         <button className="age-card" onClick={() => onAgeSelect("4-6")}>
           <span className="age-emoji">🐣</span>
           <span className="age-range">4 – 6</span>
-          <span className="age-label">{t("жас", "лет")}</span>
-          <span className="age-desc">{t("Санау, фигуралар, түстер", "Счёт, фигуры, цвета")}</span>
+          <span className="age-label">{t("жас","лет")}</span>
+          <span className="age-desc">{t("Санау, фигуралар, түстер","Счёт, фигуры, цвета")}</span>
         </button>
         <button className="age-card" onClick={() => onAgeSelect("7-10")}>
           <span className="age-emoji">🦅</span>
           <span className="age-range">7 – 10</span>
-          <span className="age-label">{t("жас", "лет")}</span>
-          <span className="age-desc">{t("Математика, логика, есептер", "Математика, логика, задачи")}</span>
+          <span className="age-label">{t("жас","лет")}</span>
+          <span className="age-desc">{t("Математика, логика, есептер","Математика, логика, задачи")}</span>
+        </button>
+      </div>
+
+      {/* Жылдам іске қосу батырмалары */}
+      <div className="quick-btns">
+        <button className="quick-btn riddle-btn" onClick={onRiddles}>
+          🧩 {t("Жұмбақтар","Загадки")}
+        </button>
+        <button className="quick-btn games-btn" onClick={onGames}>
+          🎮 {t("Ойындар","Игры")}
         </button>
       </div>
 
       <div className="home-badges">
-        <p className="free-badge">🎁 {t("5 сабақ — тегін!", "5 уроков — бесплатно!")}</p>
-        <p className="coin-badge">🪙 {t("Жауап үшін тиын жина!", "Зарабатывай монеты!")}</p>
+        <p className="free-badge">🎁 {t("5 сабақ — тегін!","5 уроков — бесплатно!")}</p>
+        <p className="coin-badge">🪙 {t("Жауап үшін тиын жина!","Зарабатывай монеты!")}</p>
       </div>
 
       <button className="parent-btn" onClick={onParent}>
-        👨‍👩‍👧 {t("Ата-ана кабинеті", "Кабинет родителя")}
+        👨‍👩‍👧 {t("Ата-ана кабинеті","Кабинет родителя")}
       </button>
     </div>
   );
