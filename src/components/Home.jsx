@@ -1,4 +1,11 @@
-export default function Home({ lang, t, onAgeSelect, streak, coins }) {
+const AVATAR_EMOJI = {
+  lion: "🦁", crown: "👑", rocket: "🚀",
+  magic: "🧙", star: "🌟", dragon: "🐉",
+};
+
+export default function Home({ lang, t, onAgeSelect, streak, coins, avatar, onShop, onParent }) {
+  const avatarEmoji = AVATAR_EMOJI[avatar] || "🦁";
+
   return (
     <div className="screen home-screen">
       {streak > 1 && (
@@ -8,13 +15,14 @@ export default function Home({ lang, t, onAgeSelect, streak, coins }) {
         </div>
       )}
 
-      <div className="logo">🦁</div>
+      <div className="logo-wrap">
+        <div className="logo">{avatarEmoji}</div>
+        <button className="shop-icon-btn" onClick={onShop} title={t("Дүкен","Магазин")}>🛍️</button>
+      </div>
+
       <h1 className="app-title">{t("Білім!", "Bilim!")}</h1>
       <p className="app-subtitle">
-        {t(
-          "Логика және математика — қызықты тапсырмалармен!",
-          "Логика и математика — через интересные задачи!"
-        )}
+        {t("Логика және математика — қызықты тапсырмалармен!", "Логика и математика — через интересные задачи!")}
       </p>
 
       {coins > 0 && (
@@ -32,7 +40,6 @@ export default function Home({ lang, t, onAgeSelect, streak, coins }) {
           <span className="age-label">{t("жас", "лет")}</span>
           <span className="age-desc">{t("Санау, фигуралар, түстер", "Счёт, фигуры, цвета")}</span>
         </button>
-
         <button className="age-card" onClick={() => onAgeSelect("7-10")}>
           <span className="age-emoji">🦅</span>
           <span className="age-range">7 – 10</span>
@@ -45,6 +52,10 @@ export default function Home({ lang, t, onAgeSelect, streak, coins }) {
         <p className="free-badge">🎁 {t("5 сабақ — тегін!", "5 уроков — бесплатно!")}</p>
         <p className="coin-badge">🪙 {t("Жауап үшін тиын жина!", "Зарабатывай монеты!")}</p>
       </div>
+
+      <button className="parent-btn" onClick={onParent}>
+        👨‍👩‍👧 {t("Ата-ана кабинеті", "Кабинет родителя")}
+      </button>
     </div>
   );
 }
