@@ -23,11 +23,13 @@ export default function Profile({ lang, t, onBack, xp, coins, streak, avatar, ac
     }
   };
 
-  const stats = JSON.parse(localStorage.getItem("bilim_stats") || "[]");
+  const stats = (() => { try { return JSON.parse(localStorage.getItem("bilim_stats") || "[]"); } catch { return []; } })();
   const totalLessons = stats.length;
   const avgScore = totalLessons
-    ? Math.round(stats.reduce((s, r) => s + (r.pct || 0), 0) / totalLessons)
+    ? Math.round(stats.reduce((s, r) => s + (r.pct ?? Math.round(((r.score || 0) / (r.total || 1)) * 100)), 0) / totalLessons)
     : 0;
+
+  const tFn = t || ((kz, ru) => lang === "kz" ? kz : ru);
 
   return (
     <div className="profile-screen">
@@ -51,7 +53,7 @@ export default function Profile({ lang, t, onBack, xp, coins, streak, avatar, ac
           </div>
         ) : (
           <div className="profile-name-row">
-            <span className="profile-name">{name || (lang === "kz" ? "Аты жоқ" : "Без имени")}</span>
+            <span className="profile-name">{name}</span>
             <button className="profile-edit-btn" onClick={() => setEditingName(true)}>✏️</button>
           </div>
         )}
@@ -59,7 +61,7 @@ export default function Profile({ lang, t, onBack, xp, coins, streak, avatar, ac
         <div className="profile-level-badge">
           <span className="level-emoji">{level.emoji}</span>
           <span className="level-title">{lang === "kz" ? level.titleKz : level.titleRu}</span>
-          <span className="level-num">Дең. {level.level}</span>
+          <span className="level-num">{tFn("Дең.", "Ур.")} {level.level}</span>
         </div>
 
         <div className="xp-bar-wrap">
@@ -103,13 +105,13 @@ export default function Profile({ lang, t, onBack, xp, coins, streak, avatar, ac
         </h3>
         <div className="ach-grid">
           {earned.map(a => (
-            <div key={a.id} className="ach-badge earned">
+            <div key={a.id} className="ach-badge earned" title={lang === "kz" ? a.kz : a.ru}>
               <span className="ach-emoji">{a.emoji}</span>
               <span className="ach-name">{lang === "kz" ? a.kz : a.ru}</span>
             </div>
           ))}
           {locked.map(a => (
-            <div key={a.id} className="ach-badge locked">
+            <div key={a.id} className="ach-badge locked" title={lang === "kz" ? a.kz : a.ru}>
               <span className="ach-emoji">🔒</span>
               <span className="ach-name">{lang === "kz" ? a.kz : a.ru}</span>
             </div>
