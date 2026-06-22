@@ -1,13 +1,16 @@
 import { useState, useRef } from "react";
 
-// Google Translate TTS — нақты қазақ дыбысы
-function speakGT(text, lang) {
-  const tl = lang === "kz" ? "kk" : "ru";
-  const url =
-    "https://translate.google.com/translate_tts" +
-    "?ie=UTF-8&client=tw-ob&tl=" + tl +
-    "&q=" + encodeURIComponent(text);
-  return url;
+function speakText(text, lang) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = lang === "kz" ? "kk-KZ" : "ru-RU";
+  utter.rate = 0.9;
+  window.speechSynthesis.speak(utter);
+}
+
+function stopSpeech() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
 }
 
 export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
@@ -16,7 +19,6 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
   const [chosen, setChosen] = useState(null);
   const [coinPop, setCoinPop] = useState(false);
   const [speaking, setSpeaking] = useState(false);
-  const audioRef = useRef(null);
 
   const questions = lesson?.questions || [];
   const q = questions[current];
@@ -28,29 +30,33 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
 
   const handleSpeak = (text) => {
     if (!text) return;
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = "";
+    if (speaking) {
+      stopSpeech();
+      setSpeaking(false);
+      return;
     }
-    const audio = new Audio(speakGT(text, lang));
-    audioRef.current = audio;
     setSpeaking(true);
-    audio.onended = () => setSpeaking(false);
-    audio.onerror = () => setSpeaking(false);
-    audio.play().catch(() => setSpeaking(false));
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = lang === "kz" ? "kk-KZ" : "ru-RU";
+      utter.rate = 0.9;
+      utter.onend = () => setSpeaking(false);
+      utter.onerror = () => setSpeaking(false);
+      window.speechSynthesis.speak(utter);
+    } else {
+      setSpeaking(false);
+    }
   };
 
-  const stopAudio = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = "";
-    }
+  const handleStop = () => {
+    stopSpeech();
     setSpeaking(false);
   };
 
   const handleAnswer = (idx) => {
     if (chosen !== null) return;
-    stopAudio();
+    handleStop();
     setChosen(idx);
     if (idx === q.correct) {
       setScore((s) => s + 1);
@@ -60,21 +66,27 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
   };
 
   const handleNext = () => {
-    stopAudio();
+    handleStop();
     if (current + 1 < questions.length) {
       setCurrent((c) => c + 1);
       setChosen(null);
     } else {
-      onDone({ score, total: questions.length });
+      onDone({
+        score,
+        total: questions.length,
+        pct: Math.round((score / questions.length) * 100),
+      });
     }
   };
 
   const handleBack = () => {
-    stopAudio();
+    handleStop();
     onBack();
   };
 
-  if (!q) return <div className="screen">{t("Сұрақтар жоқ", "Нет вопросов")}</div>;
+  const tFn = t || ((kz, ru) => lang === "kz" ? kz : ru);
+
+  if (!q) return <div className="screen">{tFn("Сұрақтар жоқ", "Нет вопросов")}</div>;
 
   const questionText = lang === "kz" ? q.text?.kz : q.text?.ru;
 
@@ -92,7 +104,7 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
         <p className="question-text">{questionText}</p>
         <button
           className={`speak-btn ${speaking ? "speaking" : ""}`}
-          onClick={() => speaking ? stopAudio() : handleSpeak(questionText)}
+          onClick={() => handleSpeak(questionText)}
           aria-label="Дауыстап оқу"
         >
           {speaking ? "⏹️" : "🔊"}
@@ -118,12 +130,12 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
         <div className={`explanation ${chosen === q.correct ? "good" : "bad"}`}>
           {chosen === q.correct
             ? <p>🎉 {lang === "kz" ? q.explanation?.kz : q.explanation?.ru}</p>
-            : <p>❌ {t("Дұрыс емес. Тағы бір рет!", "Неверно. Попробуй ещё!")}</p>
+            : <p>❌ {tFn("Дұрыс емес. Тағы бір рет!", "Неверно. Попробуй ещё!")}</p>
           }
           <button className="next-btn" onClick={handleNext}>
             {current + 1 < questions.length
-              ? t("🔄 Келесі", "🔄 Следующий")
-              : t("🏆 Нәтиже", "🏆 Результат")}
+              ? tFn("🔄 Келесі", "🔄 Следующий")
+              : tFn("🏆 Нәтиже", "🏆 Результат")}
           </button>
         </div>
       )}
