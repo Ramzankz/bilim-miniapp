@@ -7,7 +7,7 @@ const AVATAR_EMOJI = {
 
 const AGE_GROUPS = [
   { id: "4-6",   emoji: "🧸", label: "4–6" },
-  { id: "7-9",   emoji: "🚀", label: "7–9" },
+  { id: "7-10",  emoji: "🚀", label: "7–10" },
   { id: "10-13", emoji: "🔬", label: "10–13" },
 ];
 
@@ -20,8 +20,10 @@ export default function Home({
   const level = getLevel(xp || 0);
   const xpPct = getXpPercent(xp || 0);
   const achCount = (achievements || []).length;
+
   return (
     <div className="home-screen">
+      {/* Top bar */}
       <div className="top-bar">
         <button className="avatar-btn" onClick={onProfile}>
           <span className="avatar-emoji">{AVATAR_EMOJI[avatar] || "🐱"}</span>
@@ -37,13 +39,21 @@ export default function Home({
           <button className="shop-icon-btn" onClick={onShop}>🛍️</button>
         </div>
       </div>
+
+      {/* XP bar */}
       <div className="home-xp-bar">
         <div className="home-xp-fill" style={{ width: xpPct + "%" }} />
       </div>
+
+      {/* Logo */}
       <div className="logo-wrap">
         <h1 className="app-title">Білім!</h1>
-        <p className="app-subtitle">{lang === "kz" ? "Ойнай отырып үйрен 🎓" : "Учись играя 🎓"}</p>
+        <p className="app-subtitle">
+          {lang === "kz" ? "Ойнай отырып үйрен 🎓" : "Учись играя 🎓"}
+        </p>
       </div>
+
+      {/* Age selection */}
       <p className="select-age-label">{t("Жасыңды таңда", "Выбери возраст")}</p>
       <div className="age-cards">
         {AGE_GROUPS.map(g => (
@@ -53,10 +63,18 @@ export default function Home({
           </button>
         ))}
       </div>
+
+      {/* Quick action buttons */}
       <div className="quick-btns">
-        <button className="quick-btn qb-riddles" onClick={onRiddles}>🧩 {lang === "kz" ? "Жұмбақтар" : "Загадки"}</button>
-        <button className="quick-btn qb-games" onClick={onGames}>🎮 {lang === "kz" ? "Ойындар" : "Игры"}</button>
+        <button className="quick-btn qb-riddles" onClick={onRiddles}>
+          🧩 {lang === "kz" ? "Жұмбақтар" : "Загадки"}
+        </button>
+        <button className="quick-btn qb-games" onClick={onGames}>
+          🎮 {lang === "kz" ? "Ойындар" : "Игры"}
+        </button>
       </div>
+
+      {/* Feature nav */}
       <div className="feature-nav">
         <button className="feat-btn feat-missions" onClick={onMissions}>
           <span className="feat-icon">📋</span>
@@ -75,6 +93,8 @@ export default function Home({
           <span className="feat-label">{lang === "kz" ? "Жетістік " + achCount : "Бейджи " + achCount}</span>
         </button>
       </div>
+
+      {/* Parent btn */}
       <button className="parent-btn" onClick={onParent}>
         👨‍👩‍👧 {lang === "kz" ? "Ата-ана кабинеті" : "Кабинет родителя"}
       </button>
