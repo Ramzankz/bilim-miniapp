@@ -2,6 +2,9 @@ import { useState } from "react";
 
 export default function Paywall({ lang, t, onPaid, onBack }) {
   const [plan, setPlan] = useState("year");
+  const [sent, setSent] = useState(false);
+
+  const tFn = t || ((kz, ru) => lang === "kz" ? kz : ru);
 
   const plans = {
     month: { kz: "Айлық", ru: "Месяц", price: "990 ₸", badge: null },
@@ -14,19 +17,43 @@ export default function Paywall({ lang, t, onPaid, onBack }) {
   };
 
   const benefits = [
-    t("✅ Барлық сабақтар шектеусіз", "✅ Все уроки без ограничений"),
-    t("✅ Жаңа тақырыптар жетіледі", "✅ Новые темы каждый месяц"),
-    t("✅ Жарнамасыз", "✅ Без рекламы"),
-    t("✅ Екі тілде: қазақша + орысша", "✅ На двух языках"),
+    tFn("✅ Барлық сабақтар шектеусіз", "✅ Все уроки без ограничений"),
+    tFn("✅ Жаңа тақырыптар жетіледі", "✅ Новые темы каждый месяц"),
+    tFn("✅ Жарнамасыз", "✅ Без рекламы"),
+    tFn("✅ Екі тілде: қазақша + орысша", "✅ На двух языках"),
   ];
+
+  if (sent) {
+    return (
+      <div className="screen paywall-screen">
+        <button className="back-btn" onClick={onBack}>✕</button>
+        <div className="paywall-icon">⏳</div>
+        <h2 className="paywall-title">{tFn("Тексерілуде...", "Проверяем...")}</h2>
+        <p style={{ textAlign: "center", padding: "1rem", color: "#666", lineHeight: 1.6 }}>
+          {tFn(
+            "Скриншотты @BilimAppBot-қа жіберуді ұмытпаңыз. Оператор 1–24 сағат ішінде тексереді.",
+            "Не забудьте отправить скриншот в @BilimAppBot. Оператор проверит в течение 1–24 часов."
+          )}
+        </p>
+        <p style={{ textAlign: "center", fontSize: "2rem" }}>📲</p>
+        <button
+          className="pay-btn"
+          style={{ marginTop: "1rem", background: "#aaa" }}
+          onClick={onBack}
+        >
+          {tFn("← Артқа", "← Назад")}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="screen paywall-screen">
       <button className="back-btn" onClick={onBack}>✕</button>
 
       <div className="paywall-icon">🚀</div>
-      <h2 className="paywall-title">{t("Толық қатынас", "Полный доступ")}</h2>
-      <p className="trial-badge">🎁 {t("3 күн тегін сынап көр!", "3 дня бесплатно!")}</p>
+      <h2 className="paywall-title">{tFn("Толық қатынас", "Полный доступ")}</h2>
+      <p className="trial-badge">🎁 {tFn("3 күн тегін сынап көр!", "3 дня бесплатно!")}</p>
 
       <div className="plan-tabs">
         {Object.entries(plans).map(([key, p]) => (
@@ -47,21 +74,21 @@ export default function Paywall({ lang, t, onPaid, onBack }) {
       </ul>
 
       <div className="kaspi-section">
-        <p className="kaspi-title">📲 {t("Kaspi арқылы төлеу:", "Оплата через Kaspi:")}</p>
+        <p className="kaspi-title">📲 {tFn("Kaspi арқылы төлеу:", "Оплата через Kaspi:")}</p>
         <p className="kaspi-number">+7 700 000 0000</p>
         <p className="kaspi-amount">
-          {t("Сома:", "Сумма:")} <strong>{plans[plan].price}</strong>
+          {tFn("Сома:", "Сумма:")} <strong>{plans[plan].price}</strong>
         </p>
         <p className="kaspi-note">
-          {t(
+          {tFn(
             "Төлегеннен кейін скриншотты @BilimAppBot-қа жіберіңіз",
             "После оплаты отправьте скриншот в @BilimAppBot"
           )}
         </p>
       </div>
 
-      <button className="pay-btn" onClick={onPaid}>
-        {t("Төлем жасадым ✅", "Я оплатил ✅")}
+      <button className="pay-btn" onClick={() => setSent(true)}>
+        {tFn("Төлем жасадым ✅", "Я оплатил ✅")}
       </button>
     </div>
   );
