@@ -15,7 +15,7 @@ export default function Home({
   lang, t, onAgeSelect, streak, coins, avatar,
   onShop, onParent, onRiddles, onGames,
   onProfile, onMissions, onLeaderboard, onElla,
-  xp, achievements, onLangToggle,
+  xp, achievements, onLangToggle, streakLost,
 }) {
   const level = getLevel(xp || 0);
   const xpPct = getXpPercent(xp || 0);
@@ -23,6 +23,12 @@ export default function Home({
 
   return (
     <div className="home-screen">
+      {streakLost && (
+        <div className="streak-lost-banner">
+          😢 {lang === "kz" ? "Streak жоғалды. Бүгін жаңадан бастайық! 💪" : "Streak сброшен. Начнём сначала сегодня! 💪"}
+        </div>
+      )}
+
       {/* Top bar */}
       <div className="top-bar">
         <button className="avatar-btn" onClick={onProfile}>
