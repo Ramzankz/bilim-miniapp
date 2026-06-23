@@ -1,4 +1,4 @@
-import lessons from "../data/lessons";
+import { lessons } from "../data/lessons";
 
 const GROUP_META = {
   "4-6":   { emoji: "🧸", labelKz: "Кішкентайлар 🧸", labelRu: "Малыши 🧸" },
