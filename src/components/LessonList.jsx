@@ -1,51 +1,57 @@
-import { getLessons } from "../data/lessons";
+import lessons from "../data/lessons";
 
-export default function LessonList({ lang, t, ageGroup, isPaid, onLessonSelect, onBack }) {
-  const lessons = getLessons(ageGroup);
-  const label = {
-    kz: { "4-6": "Кішкентайлар 🐣", "7-10": "Ойшылдар 🦅", "10-13": "Зерделілер 🔬" },
-    ru: { "4-6": "Малыши 🐣", "7-10": "Мыслители 🦅", "10-13": "Исследователи 🔬" },
-  };
+const GROUP_META = {
+  "4-6":   { emoji: "🧸", labelKz: "Кішкентайлар 🧸", labelRu: "Малыши 🧸" },
+  "7-10":  { emoji: "🚀", labelKz: "Зерттеушілер 🚀", labelRu: "Исследователи 🚀" },
+  "10-13": { emoji: "🔬", labelKz: "Зерделілер 🔬", labelRu: "Исследователи 🔬" },
+};
+
+export default function LessonList({ lang, t, ageGroup, onLessonSelect, onBack, stats }) {
+  const completedIds = new Set((stats || []).map(s => s.lessonId).filter(Boolean));
+
+  const group = lessons[ageGroup] || [];
+  const meta = GROUP_META[ageGroup] || { emoji: "📚", labelKz: ageGroup, labelRu: ageGroup };
+  const groupLabel = lang === "kz" ? meta.labelKz : meta.labelRu;
 
   const tFn = t || ((kz, ru) => lang === "kz" ? kz : ru);
 
   return (
-    <div className="screen">
-      <div className="screen-header">
-        <button className="back-btn" onClick={onBack}>← {tFn("Артқа","Назад")}</button>
-        <h2>{label[lang]?.[ageGroup] || ageGroup}</h2>
+    <div className="screen lesson-list-screen">
+      <div className="lesson-list-header">
+        <button className="back-btn" onClick={onBack}>← {tFn("Артқа", "Назад")}</button>
+        <h2 className="lesson-list-title">{groupLabel}</h2>
       </div>
 
-      <div className="lesson-grid">
-        {lessons.map((lesson, i) => {
-          const locked = !lesson.free && !isPaid;
+      <div className="lessons-grid">
+        {group.map((lesson, idx) => {
+          const isDone = completedIds.has(lesson.id);
+          const title = lang === "kz" ? lesson.title?.kz : lesson.title?.ru;
+          const isLocked = lesson.locked;
+          const isFree = lesson.free;
+
           return (
             <button
-              key={lesson.id}
-              className={`lesson-card ${locked ? "locked" : "unlocked"}`}
+              key={lesson.id || idx}
+              className={`lesson-card ${isLocked ? "locked" : ""} ${isDone ? "done" : ""}`}
               onClick={() => onLessonSelect(lesson)}
             >
-              <span className="lesson-num">{i + 1}</span>
-              <span className="lesson-emoji">{lesson.emoji}</span>
-              <span className="lesson-title">{lesson.title[lang]}</span>
-              {locked && <span className="lock-icon">🔒</span>}
-              {!locked && <span className="free-tag">
-                {lesson.free ? tFn("Тегін","Бесплат.") : ""}
-              </span>}
+              <div className="lesson-card-top">
+                <span className="lesson-emoji">{lesson.emoji || "📖"}</span>
+                {isDone && <span className="lesson-done-badge">✅</span>}
+                {isLocked && <span className="lesson-lock">🔒</span>}
+                {!isLocked && !isFree && <span className="lesson-premium">⭐</span>}
+              </div>
+              <p className="lesson-title">{title}</p>
+              {lesson.questions && (
+                <span className="lesson-q-count">{lesson.questions.length} {tFn("сұрақ", "вопр.")}</span>
+              )}
+              {isLocked && (
+                <span className="lesson-locked-label">{tFn("Толық доступ", "Полный доступ")}</span>
+              )}
             </button>
           );
         })}
       </div>
-
-      {!isPaid && (
-        <div className="upgrade-banner">
-          <p>🔓 {tFn("Барлық сабақтарды ашу үшін:", "Открыть все уроки:")}</p>
-          <strong>5 000 ₸</strong>
-          <button className="pay-btn" onClick={() => onLessonSelect({ free: false, locked: true })}>
-            {tFn("Толық доступ алу", "Получить полный доступ")}
-          </button>
-        </div>
-      )}
     </div>
   );
 }
