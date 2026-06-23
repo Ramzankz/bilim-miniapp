@@ -75,6 +75,25 @@ body {
   color: white;
 }
 
+
+/* ── LANG BTN ── */
+.lang-btn {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 2px solid var(--primary);
+  background: transparent;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.lang-btn:active {
+  background: var(--primary);
+  color: white;
+}
+
 .screen { padding: 16px; }
 
 /* HOME */
