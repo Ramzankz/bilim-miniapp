@@ -1,20 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getLevel, getNextLevel, getXpPercent, ACHIEVEMENTS } from "../data/gamification";
 
-const AVATAR_EMOJI = {
-  a: "🐱", b: "🐶", c: "🦊", d: "🐸", e: "🦄", f: "🐯",
-  lion: "🦁", crown: "👑", rocket: "🚀", magic: "🧙", star: "🌟", dragon: "🐉",
-};
+const AVATAR_EMOJI = { a: "🐱", b: "🐶", c: "🦊", d: "🐸", e: "🦄", f: "🐯" };
 
 export default function Profile({ lang, t, onBack, xp, coins, streak, avatar, achievements }) {
   const [name, setName] = useState(() => localStorage.getItem("bilim_name") || "");
   const [editingName, setEditingName] = useState(!localStorage.getItem("bilim_name"));
+  const [pinEdit, setPinEdit] = useState(false);
+  const [newPin, setNewPin] = useState("");
 
-  const level = getLevel(xp || 0);
-  const nextLevel = getNextLevel(xp || 0);
-  const pct = getXpPercent(xp || 0);
-  const earned = ACHIEVEMENTS.filter(a => (achievements || []).includes(a.id));
-  const locked = ACHIEVEMENTS.filter(a => !(achievements || []).includes(a.id));
+  const level = getLevel(xp);
+  const nextLevel = getNextLevel(xp);
+  const pct = getXpPercent(xp);
+  const earned = ACHIEVEMENTS.filter(a => achievements.includes(a.id));
+  const locked = ACHIEVEMENTS.filter(a => !achievements.includes(a.id));
 
   const saveName = () => {
     if (name.trim()) {
@@ -23,13 +22,11 @@ export default function Profile({ lang, t, onBack, xp, coins, streak, avatar, ac
     }
   };
 
-  const stats = (() => { try { return JSON.parse(localStorage.getItem("bilim_stats") || "[]"); } catch { return []; } })();
+  const stats = JSON.parse(localStorage.getItem("bilim_stats") || "[]");
   const totalLessons = stats.length;
   const avgScore = totalLessons
-    ? Math.round(stats.reduce((s, r) => s + (r.pct ?? Math.round(((r.score || 0) / (r.total || 1)) * 100)), 0) / totalLessons)
+    ? Math.round(stats.reduce((s, r) => s + r.pct, 0) / totalLessons)
     : 0;
-
-  const tFn = t || ((kz, ru) => lang === "kz" ? kz : ru);
 
   return (
     <div className="profile-screen">
@@ -61,12 +58,12 @@ export default function Profile({ lang, t, onBack, xp, coins, streak, avatar, ac
         <div className="profile-level-badge">
           <span className="level-emoji">{level.emoji}</span>
           <span className="level-title">{lang === "kz" ? level.titleKz : level.titleRu}</span>
-          <span className="level-num">{tFn("Дең.", "Ур.")} {level.level}</span>
+          <span className="level-num">Дең. {level.level}</span>
         </div>
 
         <div className="xp-bar-wrap">
           <div className="xp-bar-label">
-            <span>XP: {xp || 0}</span>
+            <span>XP: {xp}</span>
             {nextLevel && <span>{lang === "kz" ? "Келесі" : "След."}: {nextLevel.min}</span>}
           </div>
           <div className="xp-bar-bg">
@@ -89,12 +86,12 @@ export default function Profile({ lang, t, onBack, xp, coins, streak, avatar, ac
         </div>
         <div className="pstat-box">
           <span className="pstat-icon">🔥</span>
-          <span className="pstat-val">{streak || 0}</span>
+          <span className="pstat-val">{streak}</span>
           <span className="pstat-lbl">{lang === "kz" ? "Күн қатар" : "Дней подряд"}</span>
         </div>
         <div className="pstat-box">
           <span className="pstat-icon">🪙</span>
-          <span className="pstat-val">{coins || 0}</span>
+          <span className="pstat-val">{coins}</span>
           <span className="pstat-lbl">{lang === "kz" ? "Тиын" : "Монет"}</span>
         </div>
       </div>
@@ -117,6 +114,37 @@ export default function Profile({ lang, t, onBack, xp, coins, streak, avatar, ac
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="parent-pin-section">
+        <h4>{lang === "kz" ? "👨\u200d👩\u200d👧 Ата-ана PIN" : "👨\u200d👩\u200d👧 PIN родителя"}</h4>
+        {pinEdit ? (
+          <div className="pin-edit-row">
+            <input
+              type="number"
+              placeholder="4 цифра"
+              value={newPin}
+              onChange={e => setNewPin(e.target.value.slice(0, 4))}
+              className="pin-input"
+            />
+            <button
+              className="pin-save-btn"
+              onClick={() => {
+                if (newPin.length === 4) {
+                  localStorage.setItem("bilim_parent_pin", newPin);
+                  setPinEdit(false);
+                  setNewPin("");
+                }
+              }}
+            >
+              {lang === "kz" ? "Сақтау ✓" : "Сохранить ✓"}
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => setPinEdit(true)} className="change-pin-btn">
+            {lang === "kz" ? "PIN өзгерту 🔑" : "Изменить PIN 🔑"}
+          </button>
+        )}
       </div>
     </div>
   );
