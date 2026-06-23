@@ -1,12 +1,22 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
-function speakText(text, lang) {
+function speakWeb(text, lang) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
+  // Try to find a good voice for the language
+  const voices = window.speechSynthesis.getVoices();
+  const langCode = lang === "kz" ? "kk" : "ru";
+  const voice =
+    voices.find(v => v.lang.startsWith(langCode)) ||
+    voices.find(v => v.lang.startsWith("ru")) ||
+    null;
+  if (voice) utter.voice = voice;
   utter.lang = lang === "kz" ? "kk-KZ" : "ru-RU";
-  utter.rate = 0.9;
+  utter.rate = 0.85;
+  utter.pitch = 1.0;
   window.speechSynthesis.speak(utter);
+  return utter;
 }
 
 function stopSpeech() {
@@ -18,10 +28,21 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
   const [score, setScore] = useState(0);
   const [chosen, setChosen] = useState(null);
   const [coinPop, setCoinPop] = useState(false);
+  const [coinAmount, setCoinAmount] = useState(0);
   const [speaking, setSpeaking] = useState(false);
+  const [showConfirmBack, setShowConfirmBack] = useState(false);
 
   const questions = lesson?.questions || [];
   const q = questions[current];
+
+  useEffect(() => {
+    // Load voices on mount
+    if (window.speechSynthesis) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
+    return () => stopSpeech();
+  }, []);
 
   const getOptionLabel = (opt) => {
     if (typeof opt === "string") return opt;
@@ -36,14 +57,10 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
       return;
     }
     setSpeaking(true);
-    if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = lang === "kz" ? "kk-KZ" : "ru-RU";
-      utter.rate = 0.9;
+    const utter = speakWeb(text, lang);
+    if (utter) {
       utter.onend = () => setSpeaking(false);
       utter.onerror = () => setSpeaking(false);
-      window.speechSynthesis.speak(utter);
     } else {
       setSpeaking(false);
     }
@@ -59,9 +76,11 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
     handleStop();
     setChosen(idx);
     if (idx === q.correct) {
+      const earned = 2;
       setScore((s) => s + 1);
+      setCoinAmount(earned);
       setCoinPop(true);
-      setTimeout(() => setCoinPop(false), 1200);
+      setTimeout(() => setCoinPop(false), 1400);
     }
   };
 
@@ -81,7 +100,11 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
 
   const handleBack = () => {
     handleStop();
-    onBack();
+    if (current > 0) {
+      setShowConfirmBack(true);
+    } else {
+      onBack();
+    }
   };
 
   const tFn = t || ((kz, ru) => lang === "kz" ? kz : ru);
@@ -92,13 +115,29 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
 
   return (
     <div className="screen quiz-screen">
+      {showConfirmBack && (
+        <div className="confirm-overlay">
+          <div className="confirm-dialog">
+            <p>{tFn("Тесттен шығасың ба? Прогресс жоғалады.", "Выйти из теста? Прогресс потеряется.")}</p>
+            <div className="confirm-btns">
+              <button className="confirm-yes" onClick={() => { setShowConfirmBack(false); onBack(); }}>
+                {tFn("Шығу", "Выйти")}
+              </button>
+              <button className="confirm-no" onClick={() => setShowConfirmBack(false)}>
+                {tFn("Жалғастыру", "Продолжить")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="quiz-header">
         <button className="back-btn" onClick={handleBack}>✕</button>
         <span className="progress-label">{current + 1} / {questions.length}</span>
         <span className="quiz-coins">🪙 {coins}</span>
       </div>
 
-      {coinPop && <div className="coin-popup">+10 🪙</div>}
+      {coinPop && <div className="coin-popup">+{coinAmount} 🪙</div>}
 
       <div className="question-card">
         <p className="question-text">{questionText}</p>
