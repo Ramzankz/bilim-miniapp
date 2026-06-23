@@ -75,6 +75,18 @@ export default function Paywall({ lang, t, onPaid, onBack }) {
 
       <div className="kaspi-section">
         <p className="kaspi-title">📲 {tFn("Kaspi арқылы төлеу:", "Оплата через Kaspi:")}</p>
+        <div className="kaspi-qr-wrap">
+          <img
+            src="/kaspi_qr.png"
+            alt="Kaspi QR"
+            className="kaspi-qr"
+            onError={(e) => { e.target.style.display = "none"; }}
+            style={{ width: "160px", height: "160px", borderRadius: "12px" }}
+          />
+          <p className="kaspi-scan-hint" style={{ fontSize: "0.85rem", color: "#888", marginTop: "6px" }}>
+            {tFn("Kaspi QR сканерле", "Сканируй Kaspi QR")}
+          </p>
+        </div>
         <p className="kaspi-number">+7 700 000 0000</p>
         <p className="kaspi-amount">
           {tFn("Сома:", "Сумма:")} <strong>{plans[plan].price}</strong>
