@@ -8,12 +8,7 @@ export default function Paywall({ lang, t, onPaid, onBack }) {
 
   const plans = {
     month: { kz: "Айлық", ru: "Месяц", price: "990 ₸", badge: null },
-    year: {
-      kz: "Жылдық",
-      ru: "Год",
-      price: "4 990 ₸",
-      badge: { kz: "🔥 Үнемді!", ru: "🔥 Выгодно!" },
-    },
+    year: { kz: "Жылдық", ru: "Год", price: "4 990 ₸", badge: { kz: "🔥 Үнемді!", ru: "🔥 Выгодно!" } },
   };
 
   const benefits = [
@@ -22,30 +17,6 @@ export default function Paywall({ lang, t, onPaid, onBack }) {
     tFn("✅ Жарнамасыз", "✅ Без рекламы"),
     tFn("✅ Екі тілде: қазақша + орысша", "✅ На двух языках"),
   ];
-
-  if (sent) {
-    return (
-      <div className="screen paywall-screen">
-        <button className="back-btn" onClick={onBack}>✕</button>
-        <div className="paywall-icon">⏳</div>
-        <h2 className="paywall-title">{tFn("Тексерілуде...", "Проверяем...")}</h2>
-        <p style={{ textAlign: "center", padding: "1rem", color: "#666", lineHeight: 1.6 }}>
-          {tFn(
-            "Скриншотты @BilimAppBot-қа жіберуді ұмытпаңыз. Оператор 1–24 сағат ішінде тексереді.",
-            "Не забудьте отправить скриншот в @BilimAppBot. Оператор проверит в течение 1–24 часов."
-          )}
-        </p>
-        <p style={{ textAlign: "center", fontSize: "2rem" }}>📲</p>
-        <button
-          className="pay-btn"
-          style={{ marginTop: "1rem", background: "#aaa" }}
-          onClick={onBack}
-        >
-          {tFn("← Артқа", "← Назад")}
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="screen paywall-screen">
@@ -57,11 +28,7 @@ export default function Paywall({ lang, t, onPaid, onBack }) {
 
       <div className="plan-tabs">
         {Object.entries(plans).map(([key, p]) => (
-          <button
-            key={key}
-            className={`plan-tab ${plan === key ? "active" : ""}`}
-            onClick={() => setPlan(key)}
-          >
+          <button key={key} className={`plan-tab ${plan === key ? "active" : ""}`} onClick={() => setPlan(key)}>
             {p.badge && <span className="plan-badge">{lang === "kz" ? p.badge.kz : p.badge.ru}</span>}
             <span>{lang === "kz" ? p.kz : p.ru}</span>
             <strong>{p.price}</strong>
@@ -76,32 +43,39 @@ export default function Paywall({ lang, t, onPaid, onBack }) {
       <div className="kaspi-section">
         <p className="kaspi-title">📲 {tFn("Kaspi арқылы төлеу:", "Оплата через Kaspi:")}</p>
         <div className="kaspi-qr-wrap">
-          <img
-            src="/kaspi_qr.png"
-            alt="Kaspi QR"
-            className="kaspi-qr"
+          <img src="/kaspi_qr.png" alt="Kaspi QR" className="kaspi-qr"
             onError={(e) => { e.target.style.display = "none"; }}
-            style={{ width: "160px", height: "160px", borderRadius: "12px" }}
-          />
+            style={{ width: "160px", height: "160px", borderRadius: "12px" }} />
           <p className="kaspi-scan-hint" style={{ fontSize: "0.85rem", color: "#888", marginTop: "6px" }}>
             {tFn("Kaspi QR сканерле", "Сканируй Kaspi QR")}
           </p>
         </div>
         <p className="kaspi-number">+7 700 000 0000</p>
-        <p className="kaspi-amount">
-          {tFn("Сома:", "Сумма:")} <strong>{plans[plan].price}</strong>
-        </p>
-        <p className="kaspi-note">
-          {tFn(
-            "Төлегеннен кейін скриншотты @BilimAppBot-қа жіберіңіз",
-            "После оплаты отправьте скриншот в @BilimAppBot"
-          )}
-        </p>
+        <p className="kaspi-amount">{tFn("Сома:", "Сумма:")} <strong>{plans[plan].price}</strong></p>
       </div>
 
-      <button className="pay-btn" onClick={() => setSent(true)}>
-        {tFn("Төлем жасадым ✅", "Я оплатил ✅")}
-      </button>
+      {sent ? (
+        <div className="paywall-waiting">
+          <p style={{ fontSize: "3rem" }}>⏳</p>
+          <h3>{tFn("Скриншотыңыз қабылданды!", "Скриншот принят!")}</h3>
+          <p>{tFn(
+            "1-2 сағат ішінде доступ беріледі. Сұрақ: @BilimAppBot",
+            "Доступ откроется в течение 1-2 часов. Вопросы: @BilimAppBot"
+          )}</p>
+        </div>
+      ) : (
+        <>
+          <p className="kaspi-note">
+            {tFn(
+              "Төлегеннен кейін скриншотты @BilimAppBot-қа жіберіңіз",
+              "После оплаты отправьте скриншот в @BilimAppBot"
+            )}
+          </p>
+          <button className="pay-btn" onClick={() => setSent(true)}>
+            {tFn("Скриншот жібердім ✅", "Скриншот отправил ✅")}
+          </button>
+        </>
+      )}
     </div>
   );
 }
