@@ -1,26 +1,19 @@
 import { useState, useRef, useEffect } from "react";
 
 function speakWeb(text, lang) {
-  if (!window.speechSynthesis) return;
+  if (!window.speechSynthesis) return null;
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
-  // Try to find a good voice for the language
   const voices = window.speechSynthesis.getVoices();
   const langCode = lang === "kz" ? "kk" : "ru";
-  const voice =
-    voices.find(v => v.lang.startsWith(langCode)) ||
-    voices.find(v => v.lang.startsWith("ru")) ||
-    null;
+  const voice = voices.find(v => v.lang.startsWith(langCode))
+    || voices.find(v => v.lang.startsWith("ru"))
+    || null;
   if (voice) utter.voice = voice;
   utter.lang = lang === "kz" ? "kk-KZ" : "ru-RU";
   utter.rate = 0.85;
-  utter.pitch = 1.0;
   window.speechSynthesis.speak(utter);
   return utter;
-}
-
-function stopSpeech() {
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
 }
 
 export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
@@ -28,37 +21,30 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
   const [score, setScore] = useState(0);
   const [chosen, setChosen] = useState(null);
   const [coinPop, setCoinPop] = useState(false);
-  const [coinAmount, setCoinAmount] = useState(0);
+  const [coinAmount, setCoinAmount] = useState(2);
   const [speaking, setSpeaking] = useState(false);
   const [showConfirmBack, setShowConfirmBack] = useState(false);
+  const utterRef = useRef(null);
 
   const questions = lesson?.questions || [];
   const q = questions[current];
+  const tFn = t || ((kz, ru) => lang === "kz" ? kz : ru);
 
   useEffect(() => {
-    // Load voices on mount
-    if (window.speechSynthesis) {
-      window.speechSynthesis.getVoices();
-      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-    }
-    return () => stopSpeech();
+    return () => { window.speechSynthesis?.cancel(); };
   }, []);
-
-  const getOptionLabel = (opt) => {
-    if (typeof opt === "string") return opt;
-    return lang === "kz" ? opt.kz : opt.ru;
-  };
 
   const handleSpeak = (text) => {
     if (!text) return;
     if (speaking) {
-      stopSpeech();
+      window.speechSynthesis?.cancel();
       setSpeaking(false);
       return;
     }
     setSpeaking(true);
     const utter = speakWeb(text, lang);
     if (utter) {
+      utterRef.current = utter;
       utter.onend = () => setSpeaking(false);
       utter.onerror = () => setSpeaking(false);
     } else {
@@ -67,7 +53,7 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
   };
 
   const handleStop = () => {
-    stopSpeech();
+    window.speechSynthesis?.cancel();
     setSpeaking(false);
   };
 
@@ -77,17 +63,17 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
     setChosen(idx);
     if (idx === q.correct) {
       const earned = 2;
-      setScore((s) => s + 1);
+      setScore(s => s + 1);
       setCoinAmount(earned);
       setCoinPop(true);
-      setTimeout(() => setCoinPop(false), 1400);
+      setTimeout(() => setCoinPop(false), 1200);
     }
   };
 
   const handleNext = () => {
     handleStop();
     if (current + 1 < questions.length) {
-      setCurrent((c) => c + 1);
+      setCurrent(c => c + 1);
       setChosen(null);
     } else {
       onDone({
@@ -107,7 +93,10 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
     }
   };
 
-  const tFn = t || ((kz, ru) => lang === "kz" ? kz : ru);
+  const getOptionLabel = (opt) => {
+    if (typeof opt === "string") return opt;
+    return lang === "kz" ? opt.kz : opt.ru;
+  };
 
   if (!q) return <div className="screen">{tFn("Сұрақтар жоқ", "Нет вопросов")}</div>;
 
@@ -117,14 +106,17 @@ export default function QuizScreen({ lang, t, lesson, onDone, onBack, coins }) {
     <div className="screen quiz-screen">
       {showConfirmBack && (
         <div className="confirm-overlay">
-          <div className="confirm-dialog">
-            <p>{tFn("Тесттен шығасың ба? Прогресс жоғалады.", "Выйти из теста? Прогресс потеряется.")}</p>
+          <div className="confirm-box">
+            <p>{tFn(
+              "Тесттен шыға аласыз. Прогресс сақталмайды.",
+              "Выйти из теста? Прогресс не сохранится."
+            )}</p>
             <div className="confirm-btns">
-              <button className="confirm-yes" onClick={() => { setShowConfirmBack(false); onBack(); }}>
-                {tFn("Шығу", "Выйти")}
-              </button>
-              <button className="confirm-no" onClick={() => setShowConfirmBack(false)}>
+              <button className="btn-cancel" onClick={() => setShowConfirmBack(false)}>
                 {tFn("Жалғастыру", "Продолжить")}
+              </button>
+              <button className="btn-exit" onClick={() => { setShowConfirmBack(false); onBack(); }}>
+                {tFn("Шығу", "Выйти")}
               </button>
             </div>
           </div>
