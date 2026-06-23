@@ -35,7 +35,7 @@ export default function Home({
           <span className="stat-chip">⭐ {xp || 0} XP</span>
         </div>
         <div className="top-btns">
-          <button className="lang-btn" onClick={onLangToggle}>{lang === "kz" ? "РУС" : "ҚАЗ"}</button>
+          <button className="lang-btn" onClick={onLangToggle}><strong>{lang === "kz" ? "РУС" : "ҚАЗ"}</strong></button>
           <button className="shop-icon-btn" onClick={onShop}>🛍️</button>
         </div>
       </div>
