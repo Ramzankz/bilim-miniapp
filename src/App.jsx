@@ -12,8 +12,60 @@ import Profile from "./components/Profile";
 import DailyMissions from "./components/DailyMissions";
 import Leaderboard from "./components/Leaderboard";
 import EllaAI from "./components/EllaAI";
-import Onboarding from "./components/Onboarding";
-import { ACHIEVEMENTS, getDailyMissions } from "./data/gamification";
+import { ACHIEVEMENTS } from "./data/gamification";
+
+// Inline Onboarding component
+function Onboarding({ onDone }) {
+  const [step, setStep] = React.useState(0);
+  const [name, setName] = React.useState("");
+  const [lang, setLang] = React.useState("kz");
+  const t = (kz, ru) => lang === "kz" ? kz : ru;
+  const next = () => {
+    if (step < 2) { setStep(s => s + 1); }
+    else { onDone(name.trim(), lang); }
+  };
+  if (step === 0) return (
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"linear-gradient(135deg,#667eea,#764ba2)",padding:"20px"}}>
+      <div style={{background:"white",borderRadius:"24px",padding:"32px",maxWidth:"360px",width:"100%",textAlign:"center",boxShadow:"0 20px 60px rgba(0,0,0,0.3)"}}>
+        <div style={{fontSize:"64px",marginBottom:"16px"}}>🎓</div>
+        <h1 style={{fontSize:"32px",fontWeight:"bold",color:"#333",margin:"0 0 12px"}}>Білім!</h1>
+        <p style={{color:"#666",marginBottom:"24px"}}>{lang==="kz"?"Ойнай отырып білім ал!":"Учись играя!"}</p>
+        <div style={{display:"flex",gap:"12px",marginBottom:"24px"}}>
+          <button onClick={()=>setLang("kz")} style={{flex:1,padding:"12px",borderRadius:"12px",border:lang==="kz"?"2px solid #667eea":"2px solid #eee",background:lang==="kz"?"#f0f0ff":"white",cursor:"pointer",fontWeight:lang==="kz"?"bold":"normal"}}>🇰🇿 Қазақша</button>
+          <button onClick={()=>setLang("ru")} style={{flex:1,padding:"12px",borderRadius:"12px",border:lang==="ru"?"2px solid #667eea":"2px solid #eee",background:lang==="ru"?"#f0f0ff":"white",cursor:"pointer",fontWeight:lang==="ru"?"bold":"normal"}}>🇷🇺 Русский</button>
+        </div>
+        <button onClick={next} style={{width:"100%",padding:"16px",borderRadius:"16px",background:"linear-gradient(135deg,#667eea,#764ba2)",color:"white",border:"none",fontSize:"18px",fontWeight:"bold",cursor:"pointer"}}>{lang==="kz"?"Бастау →":"Начать →"}</button>
+      </div>
+    </div>
+  );
+  if (step === 1) return (
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"linear-gradient(135deg,#667eea,#764ba2)",padding:"20px"}}>
+      <div style={{background:"white",borderRadius:"24px",padding:"32px",maxWidth:"360px",width:"100%",textAlign:"center",boxShadow:"0 20px 60px rgba(0,0,0,0.3)"}}>
+        <div style={{fontSize:"64px",marginBottom:"16px"}}>👤</div>
+        <h2 style={{fontSize:"24px",fontWeight:"bold",color:"#333",marginBottom:"8px"}}>{t("Атыңды жаз","Напиши своё имя")}</h2>
+        <p style={{color:"#666",marginBottom:"20px"}}>{t("Мен сені атыңмен шақырамын!","Я буду называть тебя по имени!")}</p>
+        <input type="text" value={name} onChange={e=>setName(e.target.value)} placeholder={t("Атың...","Твоё имя...")} maxLength={20} onKeyDown={e=>e.key==="Enter"&&name.trim()&&next()} autoFocus
+          style={{width:"100%",padding:"14px",borderRadius:"12px",border:"2px solid #eee",fontSize:"16px",marginBottom:"16px",boxSizing:"border-box",outline:"none"}} />
+        <button onClick={next} disabled={!name.trim()} style={{width:"100%",padding:"16px",borderRadius:"16px",background:name.trim()?"linear-gradient(135deg,#667eea,#764ba2)":"#ccc",color:"white",border:"none",fontSize:"18px",fontWeight:"bold",cursor:name.trim()?"pointer":"not-allowed",marginBottom:"8px"}}>{t("Келесі →","Далее →")}</button>
+        <button onClick={next} style={{background:"none",border:"none",color:"#999",cursor:"pointer",fontSize:"14px"}}>{t("Өткізу","Пропустить")}</button>
+      </div>
+    </div>
+  );
+  return (
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"linear-gradient(135deg,#667eea,#764ba2)",padding:"20px"}}>
+      <div style={{background:"white",borderRadius:"24px",padding:"32px",maxWidth:"360px",width:"100%",textAlign:"center",boxShadow:"0 20px 60px rgba(0,0,0,0.3)"}}>
+        <div style={{fontSize:"64px",marginBottom:"16px"}}>🌐</div>
+        <h2 style={{fontSize:"24px",fontWeight:"bold",color:"#333",marginBottom:"8px"}}>{t("Тіл таңда","Выбери язык")}</h2>
+        <p style={{color:"#666",marginBottom:"20px"}}>{t("Кез-келген уақытта ауыстыруға болады","Можно изменить в любое время")}</p>
+        <div style={{display:"flex",gap:"12px",marginBottom:"24px"}}>
+          <button onClick={()=>setLang("kz")} style={{flex:1,padding:"16px",borderRadius:"16px",border:lang==="kz"?"3px solid #667eea":"2px solid #eee",background:lang==="kz"?"#f0f0ff":"white",cursor:"pointer"}}>🇰🇿<br/><span style={{fontWeight:"bold"}}>Қазақша</span>{lang==="kz"&&<span> ✓</span>}</button>
+          <button onClick={()=>setLang("ru")} style={{flex:1,padding:"16px",borderRadius:"16px",border:lang==="ru"?"3px solid #667eea":"2px solid #eee",background:lang==="ru"?"#f0f0ff":"white",cursor:"pointer"}}>🇷🇺<br/><span style={{fontWeight:"bold"}}>Русский</span>{lang==="ru"&&<span> ✓</span>}</button>
+        </div>
+        <button onClick={next} style={{width:"100%",padding:"16px",borderRadius:"16px",background:"linear-gradient(135deg,#667eea,#764ba2)",color:"white",border:"none",fontSize:"18px",fontWeight:"bold",cursor:"pointer"}}>{t("Дайынмын! 🎓","Готово! 🎓")}</button>
+      </div>
+    </div>
+  );
+}
 
 class ErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { hasError: false, error: null }; }
@@ -22,14 +74,10 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: "2rem", textAlign: "center" }}>
-          <div style={{ fontSize: "3rem" }}>⚠️</div>
-          <h3>Қате шықты / Ошибка</h3>
-          <p style={{ color: "#666", fontSize: "0.9rem" }}>{String(this.state.error)}</p>
-          <button
-            style={{ marginTop: "1rem", padding: "0.5rem 1.5rem", borderRadius: "8px", background: "#4CAF50", color: "white", border: "none", fontSize: "1rem" }}
-            onClick={() => this.setState({ hasError: false, error: null })}
-          >🔄 Қайта жүктеу</button>
+        <div style={{padding:"20px",textAlign:"center",color:"red"}}>
+          <h2>Қате шықты 😕</h2>
+          <p style={{fontSize:"12px",color:"#999"}}>{String(this.state.error)}</p>
+          <button onClick={()=>this.setState({hasError:false,error:null})} style={{padding:"10px 20px",marginTop:"10px",borderRadius:"8px",border:"none",background:"#667eea",color:"white",cursor:"pointer"}}>🔄 Қайта жүктеу</button>
         </div>
       );
     }
@@ -37,110 +85,78 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+const T = {
+  kz: { selectAge: "Жасыңды таңда" },
+  ru: { selectAge: "Выбери возраст" },
+};
+
 export default function App() {
-  const [screen, setScreen] = useState("home");
   const [lang, setLang] = useState(() => localStorage.getItem("bilim_lang") || "kz");
+  const [screen, setScreen] = useState("home");
   const [ageGroup, setAgeGroup] = useState(null);
   const [selectedLesson, setSelectedLesson] = useState(null);
-  const [quizResult, setQuizResult] = useState(null);
-  const [isPaid, setIsPaid] = useState(() => localStorage.getItem("bilim_paid") === "1");
-  const [coins, setCoins] = useState(() => parseInt(localStorage.getItem("bilim_coins") || "20"));
+  const [coins, setCoins] = useState(() => parseInt(localStorage.getItem("bilim_coins") || "0"));
+  const [xp, setXp] = useState(() => parseInt(localStorage.getItem("bilim_xp") || "0"));
   const [streak, setStreak] = useState(() => parseInt(localStorage.getItem("bilim_streak") || "0"));
   const [streakLost, setStreakLost] = useState(false);
-  const [avatar, setAvatar] = useState(() => localStorage.getItem("bilim_avatar") || "lion");
-  const [xp, setXp] = useState(() => parseInt(localStorage.getItem("bilim_xp") || "0"));
-  const [achievements, setAchievements] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("bilim_achievements") || "[]"); } catch { return []; }
-  });
-  const [onboardingDone, setOnboardingDone] = useState(
-    () => localStorage.getItem("bilim_onboarded") === "1"
-  );
+  const [avatar, setAvatar] = useState(() => localStorage.getItem("bilim_avatar") || "a");
+  const [isPaid, setIsPaid] = useState(() => localStorage.getItem("bilim_paid") === "1");
+  const [stats, setStats] = useState(() => JSON.parse(localStorage.getItem("bilim_stats") || "[]"));
+  const [achievements, setAchievements] = useState(() => JSON.parse(localStorage.getItem("bilim_achievements") || "[]"));
+  const [quizResult, setQuizResult] = useState(null);
+  const [onboardingDone, setOnboardingDone] = useState(() => localStorage.getItem("bilim_onboarded") === "1");
 
   const t = (kz, ru) => lang === "kz" ? kz : ru;
 
-  // Streak check on mount
   useEffect(() => {
     const today = new Date().toDateString();
     const last = localStorage.getItem("bilim_last_visit");
     if (last !== today) {
       const yesterday = new Date(Date.now() - 86400000).toDateString();
       const currentStreak = parseInt(localStorage.getItem("bilim_streak") || "0");
-      if (last && last !== yesterday && currentStreak > 0) {
-        setStreakLost(true);
-      }
+      if (last && last !== yesterday && currentStreak > 0) setStreakLost(true);
       const newStreak = last === yesterday ? currentStreak + 1 : 1;
       setStreak(newStreak);
       localStorage.setItem("bilim_streak", newStreak);
       localStorage.setItem("bilim_last_visit", today);
-      const todayKey = "bilim_missions_" + today;
-      const prog = JSON.parse(localStorage.getItem(todayKey) || "{}");
-      if (!prog.loggedIn) {
-        prog.loggedIn = 1;
-        localStorage.setItem(todayKey, JSON.stringify(prog));
-      }
     }
   }, []);
 
-  const addCoins = (n) => {
-    setCoins(prev => {
-      const next = Math.max(0, prev + n);
+  const addCoins = (amount) => {
+    setCoins(c => {
+      const next = Math.max(0, c + amount);
       localStorage.setItem("bilim_coins", next);
       return next;
     });
   };
 
-  const addXP = (n) => {
-    setXp(prev => {
-      const next = prev + n;
+  const addXp = (amount) => {
+    setXp(x => {
+      const next = x + amount;
       localStorage.setItem("bilim_xp", next);
       return next;
     });
   };
 
-  const checkAchievements = (extra = {}) => {
-    const state = {
-      quizCount: parseInt(localStorage.getItem("bilim_quiz_count") || "0"),
-      perfectCount: parseInt(localStorage.getItem("bilim_perfect_count") || "0"),
-      streak: parseInt(localStorage.getItem("bilim_streak") || "0"),
-      coins: parseInt(localStorage.getItem("bilim_coins") || "0"),
-      xp: parseInt(localStorage.getItem("bilim_xp") || "0"),
-      boughtCount: (JSON.parse(localStorage.getItem("bilim_bought") || "[]")).length,
-      riddlesSolved: parseInt(localStorage.getItem("bilim_riddles_solved") || "0"),
-      gamesWon: parseInt(localStorage.getItem("bilim_gamesWon") || "0"),
-      missionsCompleted: parseInt(localStorage.getItem("bilim_missions_total") || "0"),
-      ...extra,
-    };
+  const checkAchievements = (context = {}) => {
     const current = JSON.parse(localStorage.getItem("bilim_achievements") || "[]");
-    const newOnes = ACHIEVEMENTS.filter(a => !current.includes(a.id) && a.check(state)).map(a => a.id);
-    if (newOnes.length) {
-      const updated = [...current, ...newOnes];
-      localStorage.setItem("bilim_achievements", JSON.stringify(updated));
+    const newAchs = [];
+    ACHIEVEMENTS.forEach(ach => {
+      if (!current.includes(ach.id) && ach.check({ stats, coins, streak, boughtCount: context.boughtCount || 0 })) {
+        newAchs.push(ach.id);
+      }
+    });
+    if (newAchs.length > 0) {
+      const updated = [...current, ...newAchs];
       setAchievements(updated);
+      localStorage.setItem("bilim_achievements", JSON.stringify(updated));
     }
-  };
-
-  const updateMissionProgress = (stat, amount = 1) => {
-    const today = new Date().toDateString();
-    const key = "bilim_missions_" + today;
-    const prog = JSON.parse(localStorage.getItem(key) || "{}");
-    prog[stat] = (prog[stat] || 0) + amount;
-    localStorage.setItem(key, JSON.stringify(prog));
-  };
-
-  const handleAgeSelect = (age) => {
-    setAgeGroup(age);
-    setScreen("lessons");
   };
 
   const handleLessonSelect = (lesson) => {
     if (lesson.locked) { setScreen("paywall"); return; }
-    if (!lesson.free && !isPaid) {
-      setSelectedLesson(lesson);
-      setScreen("paywall");
-    } else {
-      setSelectedLesson(lesson);
-      setScreen("quiz");
-    }
+    if (!lesson.free && !isPaid) { setSelectedLesson(lesson); setScreen("paywall"); }
+    else { setSelectedLesson(lesson); setScreen("quiz"); }
   };
 
   const handleQuizDone = (result) => {
@@ -148,29 +164,17 @@ export default function App() {
     const resultWithPct = { ...result, pct };
     const earned = Math.round((result.score || 0) * 2);
     const xpEarned = Math.round(pct / 5) + 5;
-    addCoins(earned);
-    addXP(xpEarned);
-
-    const quizCount = parseInt(localStorage.getItem("bilim_quiz_count") || "0") + 1;
-    localStorage.setItem("bilim_quiz_count", quizCount);
-
-    const prevPerfect = parseInt(localStorage.getItem("bilim_perfect_count") || "0");
-    const perfectCount = pct === 100 ? prevPerfect + 1 : prevPerfect;
-    if (pct === 100) localStorage.setItem("bilim_perfect_count", perfectCount);
-
-    const stats = JSON.parse(localStorage.getItem("bilim_stats") || "[]");
-    stats.push({
+    const newStats = [...stats, {
       ...resultWithPct,
       date: new Date().toISOString(),
       title: lang === "kz" ? selectedLesson?.title?.kz : selectedLesson?.title?.ru,
       lessonId: selectedLesson?.id,
-    });
-    localStorage.setItem("bilim_stats", JSON.stringify(stats));
-
-    updateMissionProgress("quizCount");
-    if (pct === 100) updateMissionProgress("perfectCount");
-
-    checkAchievements({ quizCount, perfectCount });
+    }];
+    setStats(newStats);
+    localStorage.setItem("bilim_stats", JSON.stringify(newStats));
+    addCoins(earned);
+    addXp(xpEarned);
+    checkAchievements();
     setQuizResult({ ...resultWithPct, coinsEarned: earned, xpEarned });
     setScreen("result");
   };
@@ -178,11 +182,7 @@ export default function App() {
   const handlePaymentDone = () => {
     setIsPaid(true);
     localStorage.setItem("bilim_paid", "1");
-    if (selectedLesson && selectedLesson.id) {
-      setScreen("quiz");
-    } else {
-      setScreen("home");
-    }
+    setScreen(selectedLesson ? "quiz" : "home");
   };
 
   const handleBuyAvatar = (newAvatar, price) => {
@@ -191,29 +191,17 @@ export default function App() {
     setAvatar(newAvatar);
     localStorage.setItem("bilim_avatar", newAvatar);
     const bought = JSON.parse(localStorage.getItem("bilim_bought") || "[]");
-    if (!bought.includes(newAvatar)) {
-      bought.push(newAvatar);
-      localStorage.setItem("bilim_bought", JSON.stringify(bought));
-    }
+    if (!bought.includes(newAvatar)) { bought.push(newAvatar); localStorage.setItem("bilim_bought", JSON.stringify(bought)); }
     checkAchievements({ boughtCount: bought.length });
     return true;
   };
 
-  const handleRiddleSolved = () => {
-    addCoins(10);
-    addXP(15);
-    updateMissionProgress("riddlesToday");
-    const total = parseInt(localStorage.getItem("bilim_riddles_solved") || "0") + 1;
-    localStorage.setItem("bilim_riddles_solved", total);
-    checkAchievements({ riddlesSolved: total });
-  };
-
-  const handleGameWin = (coinAmount) => {
-    addCoins(coinAmount || 10);
-    addXP(20);
-    const gamesWon = parseInt(localStorage.getItem("bilim_gamesWon") || "0") + 1;
-    localStorage.setItem("bilim_gamesWon", gamesWon);
-    checkAchievements({ gamesWon });
+  const handleRiddleSolved = (coinsEarned) => {
+    addCoins(coinsEarned);
+    addXp(10);
+    checkAchievements();
+    const solved = parseInt(localStorage.getItem("bilim_riddles_solved") || "0") + 1;
+    localStorage.setItem("bilim_riddles_solved", solved);
   };
 
   const handleLangToggle = () => {
@@ -224,65 +212,42 @@ export default function App() {
 
   if (!onboardingDone) {
     return (
-      <Onboarding
-        onDone={(name, chosenLang) => {
-          if (name) localStorage.setItem("bilim_name", name.trim());
-          if (chosenLang) { setLang(chosenLang); localStorage.setItem("bilim_lang", chosenLang); }
-          localStorage.setItem("bilim_onboarded", "1");
-          setOnboardingDone(true);
-        }}
-      />
+      <Onboarding onDone={(name, chosenLang) => {
+        if (name) localStorage.setItem("bilim_name", name.trim());
+        if (chosenLang) { setLang(chosenLang); localStorage.setItem("bilim_lang", chosenLang); }
+        localStorage.setItem("bilim_onboarded", "1");
+        setOnboardingDone(true);
+      }} />
     );
   }
 
   const screens = {
-    home: <Home lang={lang} t={t} onAgeSelect={handleAgeSelect} streak={streak} coins={coins}
-      avatar={avatar} onShop={() => setScreen("shop")} onParent={() => setScreen("parent")}
-      onRiddles={() => setScreen("riddles")} onGames={() => setScreen("games")}
-      onProfile={() => setScreen("profile")} onMissions={() => setScreen("missions")}
-      onLeaderboard={() => setScreen("leaderboard")} onElla={() => setScreen("ella")}
-      xp={xp} achievements={achievements} onLangToggle={handleLangToggle}
-      streakLost={streakLost} onDismissStreak={() => setStreakLost(false)} />,
-
-    lessons: <LessonList lang={lang} t={t} ageGroup={ageGroup} onLessonSelect={handleLessonSelect}
-      isPaid={isPaid} onBack={() => setScreen("home")} />,
-
-    quiz: <QuizScreen lang={lang} t={t} lesson={selectedLesson} onDone={handleQuizDone}
-      onBack={() => setScreen("lessons")} coins={coins} />,
-
-    paywall: <Paywall lang={lang} t={t} onPaid={handlePaymentDone}
-      onBack={() => setScreen(selectedLesson ? "lessons" : "home")} />,
-
+    home: <Home lang={lang} t={t} onAgeSelect={(g)=>{setAgeGroup(g);setScreen("lessons");}}
+      streak={streak} coins={coins} avatar={avatar} xp={xp} achievements={achievements}
+      onShop={()=>setScreen("shop")} onParent={()=>setScreen("parent")}
+      onRiddles={()=>setScreen("riddles")} onGames={()=>setScreen("games")}
+      onProfile={()=>setScreen("profile")} onMissions={()=>setScreen("missions")}
+      onLeaderboard={()=>setScreen("leaderboard")} onElla={()=>setScreen("ella")}
+      onLangToggle={handleLangToggle} streakLost={streakLost}
+      onDismissStreak={()=>setStreakLost(false)} />,
+    lessons: <LessonList lang={lang} t={t} ageGroup={ageGroup}
+      onLessonSelect={handleLessonSelect} onBack={()=>setScreen("home")} stats={stats} />,
+    quiz: <QuizScreen lang={lang} t={t} lesson={selectedLesson}
+      onDone={handleQuizDone} onBack={()=>setScreen("lessons")} coins={coins} />,
+    paywall: <Paywall lang={lang} t={t} onPaid={handlePaymentDone} onBack={()=>setScreen(ageGroup?"lessons":"home")} />,
     result: <Result lang={lang} t={t} result={quizResult} lesson={selectedLesson}
-      totalCoins={coins} onRetry={() => setScreen("quiz")} onBack={() => setScreen("lessons")} />,
-
-    shop: <Shop lang={lang} t={t} coins={coins} avatar={avatar} onBuy={handleBuyAvatar}
-      onBack={() => setScreen("home")} />,
-
-    parent: <ParentDashboard lang={lang} t={t} onBack={() => setScreen("home")} />,
-
-    riddles: <Riddles lang={lang} t={t} onEarn={handleRiddleSolved}
-      onBack={() => setScreen("home")} />,
-
-    games: <MiniGames lang={lang} onBack={() => setScreen("home")} onWin={handleGameWin}
-      onAddCoins={addCoins} onUpdateMission={updateMissionProgress} />,
-
-    profile: <Profile lang={lang} t={t} onBack={() => setScreen("home")} xp={xp}
-      coins={coins} streak={streak} avatar={avatar} achievements={achievements} />,
-
-    missions: <DailyMissions lang={lang} onBack={() => setScreen("home")}
-      onAddCoins={addCoins} onAddXP={addXP} />,
-
-    leaderboard: <Leaderboard lang={lang} onBack={() => setScreen("home")} xp={xp} avatar={avatar} />,
-
-    ella: <EllaAI lang={lang} onBack={() => setScreen("home")} />,
+      onHome={()=>setScreen("home")} onRetry={()=>setScreen("quiz")} totalCoins={coins} />,
+    shop: <Shop lang={lang} t={t} coins={coins} currentAvatar={avatar} onBuy={handleBuyAvatar} onBack={()=>setScreen("home")} />,
+    parent: <ParentDashboard lang={lang} t={t} stats={stats} onBack={()=>setScreen("home")} />,
+    riddles: <Riddles lang={lang} t={t} onBack={()=>setScreen("home")} onEarn={handleRiddleSolved} />,
+    games: <MiniGames lang={lang} t={t} onBack={()=>setScreen("home")} coins={coins} onEarn={addCoins} />,
+    profile: <Profile lang={lang} t={t} avatar={avatar} coins={coins} xp={xp} streak={streak}
+      achievements={achievements} stats={stats} onBack={()=>setScreen("home")}
+      onBuyAvatar={handleBuyAvatar} isPaid={isPaid} />,
+    missions: <DailyMissions lang={lang} t={t} stats={stats} streak={streak} onBack={()=>setScreen("home")} onEarn={(c)=>{addCoins(c);addXp(20);}} />,
+    leaderboard: <Leaderboard lang={lang} t={t} xp={xp} onBack={()=>setScreen("home")} />,
+    ella: <EllaAI lang={lang} onBack={()=>setScreen("home")} />,
   };
 
-  return (
-    <div className="app-wrap">
-      <ErrorBoundary key={screen}>
-        {screens[screen] || screens.home}
-      </ErrorBoundary>
-    </div>
-  );
+  return <ErrorBoundary key={screen}>{screens[screen] || screens.home}</ErrorBoundary>;
 }
